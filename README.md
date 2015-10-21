@@ -1,6 +1,6 @@
 # Compiler - Lispkit
 
-Il repository contiene un compilatore per il
+Il repository contiene un compilatore per ils
 linguaggio funzionale (minimale) Lispkit.
 Il compilatore è stato realizzato come progetto per il corso
 *Linguaggi di Programmazione* AA 2015/2016.
