@@ -1,15 +1,23 @@
 # Compiler - Lispkit
 
 Il repository contiene un compilatore per il
-linguaggio funzionale Lispkit.
-Il compilatore è stato realizzato come progetto del corso
-*Linguaggi di Programmazione* durante l'anno accademico 2015/2016.
+linguaggio funzionale (minimale) Lispkit.
+Il compilatore è stato realizzato come progetto per il corso
+*Linguaggi di Programmazione* AA 2015/2016.
 
 ## Componenti
 
-Le diverse componenti del compilatore sono state implementate
-sequenzialmente:
-1. **Analizzatore lessicale**: dato in input un programma genera la serie di token ad esso relativi.
-2. **Analizzatore sintattico**:
-3. **Analizzatore semantico**:
-4. **Generatore di codice target**:
+Il compilatore è stato implementato per componenti, realizzando
+dapprima l'analizzatore lessicale (lexer) e successivamente le restanti parti.
+
+### Analizzatore lessicale - Lexer
+
+Dato in input un programma P genera la serie di token T ad esso relativi.
+Non importa se il programma non ha alcun senso dal punto di vista semantico: l'importante è che esistano dei token, relativi agli elementi del programma,
+che permettano di tradurlo.
+
+### Analizzatore sintattico
+
+### Analizzatore semantico
+
+### Generatore di codice target
