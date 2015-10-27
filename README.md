@@ -18,6 +18,14 @@ che permettano di tradurlo.
 
 ### Analizzatore sintattico
 
+Data in input una stringa s viene costruito l'albero di parsing della stringa s
+per la grammatica G.  
+
+#### Grammatica
+
+G e' una grammatica libera da contesto (GLC), essenzialmente una grammatica descrive la sintassi del linguaggio da analizzare. In particolare la GLC scelta  
+è una grammatica LL(1): significa che il parsing dell'input s viene eseguito da sinistra a destra esaminando una sola volta tutta la stringa e considerando un simbolo del programma per volta.  
+
 ### Analizzatore semantico
 
 ### Generatore di codice target
