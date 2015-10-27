@@ -1,23 +1,24 @@
-    \begin{table}[]
-	\centering
-	\label{FIRSTG0}
-	\begin{tabular}{@{}l|l@{}}
-	X & FIRST(X) \\ \midrule
-    Prog & \big\{ \big\} \\ 
-    Bind & \big\{ \big\} \\ 
-    X & \big\{ \textit{epsilon} \big\} \\
-    Exp & \big\{ \big\} \\
-    ExpA & \big\{ \big\} \\
-    E1 & \big\{ \textit{epsilon} \big\} \\
-    T & \big\{ \big\} \\
-    T1 & \big\{ \textit{epsilon} \big\} \\
-    F & \big\{ \textit{exp\_const, epsilon} \big\} \\
-    Y & \big\{ \textit{epsilon} \big\} \\
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}l|l@{}}
+X & FIRST(X) \\ \midrule
+    Prog & \big\{ \textit{let in end, letrec in end} \big\} \\ 
+    Bind & \big\{ \textit{var =} \big\} \\ 
+    X & \big\{ \textit{and, epsilon} \big\} \\
+    Exp & \big\{ \textit{let in end, letrec in end,  lambda,   var, exp\_const,} \big(, \\
+      & \textit{cons, car, cdr, eq, leq, atom,  if then else} \big\} \\
+    ExpA & \big\{ \textit{var, exp\_const,} \big( \big\} \\
+    E1 & \big\{ $+$, $-$, \textit{epsilon} \big\} \\
+    T & \big\{ \textit{var, exp\_const,} \big( \big\} \\
+    T1 & \big\{ $*$, $/$, \textit{epsilon} \big\} \\
+    F & \big\{ \textit{var, exp\_const,} \big( \big\} \\
+    Y & \big\{ \big( , \textit{epsilon} \big\} \\
     OPA & \big\{ $+$, $-$ \big\}  \\
     OPM & \big\{ $*$, $/$ \big\}  \\
     OPP & \big\{ \textit{cons, car, cdr, eq, leq, atom} \big\} \\
-    Seq\_Exp & \big\{ \textit{epsilon} \big\} \\
-    Seq\_Var & \big\{ \textit{epsilon} \big\} 
-	\end{tabular}
-	\caption{Calcolo di FIRST per G0}
-	\end{table}
+    Seq\_Exp & \big\{ \textit{let in end, letrec in end,  lambda,   var, exp\_const,} \big(,  \\
+     & \textit{cons, car, cdr, eq, leq, atom,  if then else}  \textit{epsilon} \big\} \\
+    Seq\_Var & \big\{ \textit{var, epsilon} \big\} 
+\end{tabular}
+\caption{Calcolo di FIRST per G0}
+\end{table}
