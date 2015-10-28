@@ -17,8 +17,32 @@ X & FIRST(X) \\ \midrule
     OPM & \big\{ $*$, $/$ \big\}  \\
     OPP & \big\{ \textit{cons, car, cdr, eq, leq, atom} \big\} \\
     Seq\_Exp & \big\{ \textit{let in end, letrec in end,  lambda,   var, exp\_const,} \big(,  \\
-     & \textit{cons, car, cdr, eq, leq, atom,  if then else}  \textit{epsilon} \big\} \\
+     & \textit{cons, car, cdr, eq, leq, atom,  if then else,}  \textit{epsilon} \big\} \\
     Seq\_Var & \big\{ \textit{var, epsilon} \big\} 
 \end{tabular}
 \caption{Calcolo di FIRST per G0}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}l|l@{}}
+X & FOLLOW(X) \\ \midrule
+    Prog & \big\{ \$, FOLLOW(Exp) \big\} \\ 
+    Bind & \big\{ \$, FOLLOW(X), \textit{in} \big\} \\ 
+    X & \big\{ \$, FOLLOW(Bind) \big\} \\
+    Exp & \big\{ \$, FIRST(Seq\_Exp) - epsilon, FOLLOW(Seq\_Exp), \textit{then, else}, \\
+     & FIRST(X)-epsilon, FOLLOW(Bind), end \big\} \\
+    ExpA & \big\{ \$, \big), FOLLOW(Exp)  \big\} \\
+    E1 & \big\{ \$, FOLLOW(ExpA) \big\} \\
+    T & \big\{ \$, $+$, $-$, FOLLOW(ExpA), FOLLOW(E1) \big\} \\
+    T1 & \big\{ \$, FOLLOW(T) \big\} \\
+    F & \big\{ \$, $*$, $/$, FOLLOW(T1) \big\} \\
+    Y & \big\{ \$, FOLLOW(F) \big\} \\
+    OPA & \big\{ \$, \textit{var, exp\_const,} \big( \big\}  \\
+    OPM & \big\{ \$, \textit{var, exp\_const,} \big(, FOLLOW(T1) \big\}  \\
+    OPP & \big\{ \$, \big( \big\} \\
+    Seq\_Exp & \big\{ \$, \big) \big\} \\
+    Seq\_Var & \big\{ \$, \big) \big\} 
+\end{tabular}
+\caption{Calcolo di FOLLOW per G0}
 \end{table}
