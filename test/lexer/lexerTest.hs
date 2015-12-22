@@ -18,7 +18,10 @@ ltu14,
 ltu15,
 ltu16,
 ltu17,
-ltu18
+ltu18,
+ltu19,
+ltu20,
+ltu21
 ) where
 
 -- == TEST SUI CASI DI PATTERN MATCHING ==
@@ -83,3 +86,12 @@ ltu17 = "True and False ";
 
 -- TU18 : test su programma errato : F -> malformed input
 ltu18 = "T 0";
+
+-- TU19 : test su programma corretto per n : T
+ltu19 = "let k = (~233 + 10) $";
+
+-- TU20 : T
+ltu20 = "letrec  FACT = lambda ( X, Y ) if  eq ( X, 0 ) then 1 else  X*FACT(  X- 1 )and G = lambda ( H L ) if  eq ( L,  nil ) then L else cons( H(car( L ) ), G ( H, cdr ( L ) )) in G ( FACT, cons(1, cons(2, cons(3, nil))) ) end $";
+
+-- TU21 : T
+ltu21 = "let x=cons(\"ab\", cons(\"cd\", nil)) in if true then cons(\"01\", x) else nil end $";
