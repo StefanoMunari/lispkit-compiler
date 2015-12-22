@@ -239,7 +239,7 @@ funt1 ((Symbol DIVISION):b)= do
                               funt1 x
 funt1 x                    = Return x
 
--- F::= var Y |exp_const | (ExpA)
+-- F::= var Y | exp_const | (ExpA)
 {-
   se è un espressione costante
             => successore
@@ -263,8 +263,13 @@ fX ((Symbol LPAREN):b)     = do
 fX (a:_)                   = Raise ("ERRORE in fX, TROVATO"++ show(a))
 
 
-
-exp_const::Token ->Bool
+-- espressione costante (exp_const)
+{-
+  Se input is
+    Number || Nil || Bool || String => True
+    otherwise => False
+-}
+exp_const::Token -> Bool
 exp_const (Number _)  =  True
 exp_const Nil         =  True
 exp_const (Bool _)    =  True
