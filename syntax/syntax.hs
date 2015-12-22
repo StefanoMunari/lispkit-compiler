@@ -206,8 +206,13 @@ funt a = do
 
 
 -- E1::= OPA T E1 | epsilon
-{-
-  Nessuno dei precedenti => epsilon
+{- NOTA: @see GRAMMATICA G1
+  {+ ..} =>
+          verifica che il successore sia "T"
+          verifica che il successore di "T" sia "E1"
+  {"-" ..} =>
+          @sameas E1::{+ ..}
+  {.. } => epsilon
 -}
 fune1 ((Symbol PLUS):b)    = do
                               x<- funt b
