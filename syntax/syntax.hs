@@ -276,7 +276,13 @@ exp_const (Bool _)    =  True
 exp_const (String _)  =  True
 exp_const  _          = False
 
-
+-- Y :: = (Seq_Exp) | epsilon
+{-
+  Se l'input inizia con "("
+                          => controlla che il successore sia "Seq_Exp"
+                             controlla che il successore di "Seq_Exp" sia ")"
+  altrimenti => epsilon
+-}
 fuy ((Symbol LPAREN):b)      =  do
                                  x<-seq_exp b
                                  rec_rp x
