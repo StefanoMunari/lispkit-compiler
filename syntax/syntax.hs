@@ -222,7 +222,15 @@ fune1 ((Symbol MINUS):b)   = do
                               fune1 x
 fune1 x                    = Return x
 
-
+-- T1::= OPM F T1 | epsilon
+{-
+  {* ..} =>
+          verifica che il successore sia "F"
+          verifica che il successore di "F" sia "T1"
+  {/ ..} =>
+          @sameas T1::{* ..}
+  {.. } => epsilon
+-}
 funt1 ((Symbol TIMES):b)   = do
                               x<-funf b
                               funt1 x
