@@ -7,10 +7,7 @@ lexi
 ) where
 
 import Prelude hiding (EQ)
-{-
-import LexerUnitTest
-import LexerIntegrationTest
--}
+
 -- Tipi
 
 data Keyword_T = LET | IN | END | LETREC | AND | IF | THEN | ELSE | LAMBDA
