@@ -247,7 +247,15 @@ funt1 x                    = Return x
 -}
 funf (a:b)                 = if (exp_const a) then Return b
                                               else fX (a:b)
-
+-- X::= and Bind | epsilon
+{-
+  {identificatore ..} =>
+                      verifica che il successore sia "Y"
+  {( ..} =>
+          verifica che il successore sia "ExpA"
+          verifica che il successore di "ExpA" sia ")"
+  {.. } => eccezione
+-}
 fX ((Id _):b)              = fuy b
 fX ((Symbol LPAREN):b)     = do
                               x<- expa b
