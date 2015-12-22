@@ -239,7 +239,12 @@ funt1 ((Symbol DIVISION):b)= do
                               funt1 x
 funt1 x                    = Return x
 
-
+-- F::= var Y |exp_const | (ExpA)
+{-
+  se è un espressione costante
+            => successore
+            ~> altrimenti verifica che l'intero input sia "X"
+-}
 funf (a:b)                 = if (exp_const a) then Return b
                                               else fX (a:b)
 
