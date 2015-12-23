@@ -191,7 +191,7 @@ exp a@((Keyword LET):b)    = (prog a)
 exp a@((Keyword LETREC):b) = (prog a)
 exp ((Keyword LAMBDA):b)   = do
                                 x<-rec_lp b
-                                y<-seq_var b
+                                y<-seq_var x
                                 exp y
 exp ((Operator CONS):b)    = do
                                 x<-rec_lp b
@@ -343,13 +343,13 @@ seq_exp a                      = do
   {Id ..} =>
       verifica che il successore di "Id" sia un "Seq_Var"
   {) ..} =>
-      ritorna l'intero input, ha finito di calcolare la lista di parametri
+      ritorna l'input restante, ha finito di calcolare la lista di parametri
       (contenuta nella prima parte di a)
   Nessuno dei precedenti => eccezione
 -}
 seq_var:: [Token]-> Exc[Token]
 seq_var (Id a : b)             = seq_var b
-seq_var a@(Symbol RPAREN : b)  = Return a
+seq_var (Symbol RPAREN : b)    = Return b
 seq_var (a:_)                  = Raise ("ERRORE in seq_var, TROVATO "++ show(a))
 
 -- Sep_Exp ::=  , Exp Sep_Exp | epsilon
