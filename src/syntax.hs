@@ -190,8 +190,9 @@ exp::[Token]->Exc[Token]
 exp a@((Keyword LET):b)    = (prog a)
 exp a@((Keyword LETREC):b) = (prog a)
 exp ((Keyword LAMBDA):b)   = do
-                                x<-seq_var b
-                                exp x
+                                x<-rec_lp b
+                                y<-seq_var b
+                                exp y
 exp ((Operator CONS):b)    = do
                                 x<-rec_lp b
                                 y<-exp x
