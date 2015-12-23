@@ -1,5 +1,5 @@
--- LEXER:
-module LexerUnitTest (
+-- LEXER: test per lexi
+module LexerTest (
 ltu0,
 ltu1,
 ltu2,
@@ -18,10 +18,7 @@ ltu14,
 ltu15,
 ltu16,
 ltu17,
-ltu18,
-ltu19,
-ltu20,
-ltu21
+ltu18
 ) 
 where
 
