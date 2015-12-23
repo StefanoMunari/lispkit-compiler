@@ -4,6 +4,8 @@ progdoll
 where
 
 import Lexer
+import LexerTest
+import SyntaxTest
 import Prelude hiding (EQ,exp)
 
 ------------------------------------------------------------------------
