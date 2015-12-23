@@ -108,7 +108,7 @@ prog a = do
          w<-exp z
          rec_end w
 
--- Bin::= var = Exp X
+-- Bind::= var = Exp X
 {-
  Id a : il primo parametro è un'identificatore
        =>
@@ -125,7 +125,7 @@ bind (a:_)                  = Raise ("BINDER CON "++ show(a) ++" A SINISTRA")
 
 -- X::= and Bind | epsilon
 {-
- {and ...} => il successore deve essere un "Bin"
+ {and ...} => il successore deve essere un "Bind"
  {in ...} => ritorna l'intero input // in questo caso sto valutando FOLLOW(X)
                                     // perchè X contiene epsilon
 -}
@@ -287,7 +287,7 @@ fX (a:_)                   = Raise ("ERRORE in fX, TROVATO"++ show(a))
   altrimenti => epsilon
 -}
 fuy ((Symbol LPAREN):b)      =  do
-                                 x<-seq_exp b
+                                 x <- seq_exp b
                                  rec_rp x
 fuy x                        = Return x
 
@@ -304,9 +304,20 @@ exp_const (Bool _)    =  True
 exp_const (String _)  =  True
 exp_const  _          = False
 
+-- Seq_Exp::= Exp Sep_Exp |epsilon
+
 -- Seq_Var ::= var Seq_var | epsilon
 {-
-  Nessuno dei precedenti => epsilon
+  {Id ..} =>
+      verifica che il successore di "Id" sia un "Seq_Var"
+  {) ..} =>
+      ritorna l'intero input, ha finito di calcolare la lista di parametri
+      (contenuta nella prima parte di a)
+  Nessuno dei precedenti => eccezione
 -}
 seq_var:: [Token]-> Exc[Token]
-seq_var x = Return x  -- da completare ......................................
+seq_var (Id a : b)             = seq_var b
+seq_var a@(Symbol RPAREN : b)  = Return a
+seq_var (a:_)                	 = Raise ("ERRORE in seq_var, TROVATO "++ show(a))
+
+-- Sep_Exp ::=  , Exp Sep_Exp | epsilon
