@@ -93,6 +93,8 @@ rec_equals (a:b)              = Raise ("trovato " ++ show(a) ++ ", atteso =")
 ------------------------------------------------------------------------
 -- Parsing di simboli non terminali
 
+-- Funzione per testare parte2 : data una lista di token stampa il risultato
+-- del parsing
 -- (Prog + $) stampa il risultato di un Prog
 progdoll::[Token] -> String
 progdoll x= show (prog x)
