@@ -316,7 +316,7 @@ exp_const  _          = False
 -}
 seq_exp:: [Token] -> Exc[Token]
 seq_exp a                      = do
-                                  x <-exp a
+                                  x <- exp a
                                   sep_exp x
 seq_exp a@(Symbol RPAREN : b)  = Return a
 
@@ -335,3 +335,13 @@ seq_var a@(Symbol RPAREN : b)  = Return a
 seq_var (a:_)                	 = Raise ("ERRORE in seq_var, TROVATO "++ show(a))
 
 -- Sep_Exp ::=  , Exp Sep_Exp | epsilon
+{-
+  {, ..} =>
+      verifica che il successore di "," sia un "Seq_Exp" (cioè "Exp Sep_Exp")
+  {) ..} =>
+      ritorna l'intero input, ha finito di calcolare la lista di parametri
+      (contenuta nella prima parte di a)
+-}
+sep_exp:: [Token]-> Exc[Token]
+sep_exp (Symbol VIRGOLA : b) = seq_exp b
+sep_exp a@(Symbol RPAREN : b)  = Return a
