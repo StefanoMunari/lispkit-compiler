@@ -1,4 +1,4 @@
--- LEXER: test per lexi
+-- LEXER: ==== TEST UNITA ====
 module LexerTest (
 ltu0,
 ltu1,
@@ -18,7 +18,8 @@ ltu14,
 ltu15,
 ltu16,
 ltu17,
-ltu18
+ltu18,
+ltu19
 ) 
 where
 
@@ -84,3 +85,6 @@ ltu17 = "True and False ";
 
 -- TU18 : test su programma errato : F -> malformed input
 ltu18 = "T 0";
+
+-- TU19 : test su programma corretto per n : T
+ltu19 = "let k = (~233 + 10) $";
