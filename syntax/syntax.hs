@@ -305,6 +305,20 @@ exp_const (String _)  =  True
 exp_const  _          = False
 
 -- Seq_Exp::= Exp Sep_Exp |epsilon
+{-
+  a =>
+      verifica che a contenga "Exp", se esiste un errore questo viene gestito
+      da exp
+      verifica che il successore di "Exp" sia un "Sep_Exp"
+  {) ..} =>
+      ritorna l'intero input, ha finito di calcolare la lista di parametri
+      (quest'ultima è contenuta nella prima parte di a)
+-}
+seq_exp:: [Token] -> Exc[Token]
+seq_exp a                      = do
+                                  x <-exp a
+                                  sep_exp x
+seq_exp a@(Symbol RPAREN : b)  = Return a
 
 -- Seq_Var ::= var Seq_var | epsilon
 {-
