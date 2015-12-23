@@ -16,10 +16,23 @@ instance Show a => Show (Exc a) where
  show (Raise e)= "ERRORE:" ++ e
  show (Return x) = "RAGGIUNTO:" ++ (show x)
 
+-- fmap :: Functor f => (a -> b) -> f a -> f b
+instance Functor Exc where
+  fmap fun (Return x) = Return (fun x)
+  fmap fun (Raise e)  = Raise e
+
+-- (<*>) :: Applicative f => f (a -> b) -> f a -> f b
+instance Applicative Exc where
+  pure             = Return
+  (Raise e) <*> _  = Raise e
+  (Return fun) <*> q = fmap fun q
+
+-- (>>=) :: Monad m => m a -> (a -> m b) -> m b
 instance Monad Exc where
- return x  = Return x
- (Raise e) >>= q   = Raise e
- (Return x) >>= q  = q x
+ return            = Return
+ (Raise e) >>= _   = Raise e
+ (Return x) >>= funMon  = funMon x
+-- ex: (Return 3) >>= (\y->Return (3+y)) = RAGGIUNTO:6
 
 raise :: Exception -> Exc a
 raise e = Raise e
