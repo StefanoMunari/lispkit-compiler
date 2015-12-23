@@ -1,7 +1,7 @@
 module Syntax (
-progdoll,
-dd
-) where
+progdoll
+)
+where
 
 import Lexer
 import Prelude hiding (EQ,exp)
@@ -106,8 +106,10 @@ rec_equals (a:b)              = Raise ("trovato " ++ show(a) ++ ", atteso =")
 ------------------------------------------------------------------------
 -- Parsing di simboli non terminali
 
--- Funzione per testare parte2 : data una lista di token stampa il risultato
--- del parsing
+-- Funzione per testare parte2 : 
+-- data una lista di token stampa il risultato del parsing
+-- RAGGIUNTO:
+-- ERRORE:
 -- (Prog + $) stampa il risultato di un Prog
 progdoll::[Token] -> String
 progdoll x= show (prog x)
@@ -319,19 +321,19 @@ exp_const  _          = False
 
 -- Seq_Exp::= Exp Sep_Exp |epsilon
 {-
+  {) ..} =>
+    ritorna l'intero input, ha finito di calcolare la lista di parametri
+    (quest'ultima è contenuta nella prima parte di a)
   a =>
       verifica che a contenga "Exp", se esiste un errore questo viene gestito
       da exp
       verifica che il successore di "Exp" sia un "Sep_Exp"
-  {) ..} =>
-      ritorna l'intero input, ha finito di calcolare la lista di parametri
-      (quest'ultima è contenuta nella prima parte di a)
 -}
 seq_exp:: [Token] -> Exc[Token]
+seq_exp a@(Symbol RPAREN : b)  = Return a
 seq_exp a                      = do
                                   x <- exp a
                                   sep_exp x
-seq_exp a@(Symbol RPAREN : b)  = Return a
 
 -- Seq_Var ::= var Seq_var | epsilon
 {-
@@ -345,7 +347,7 @@ seq_exp a@(Symbol RPAREN : b)  = Return a
 seq_var:: [Token]-> Exc[Token]
 seq_var (Id a : b)             = seq_var b
 seq_var a@(Symbol RPAREN : b)  = Return a
-seq_var (a:_)                	 = Raise ("ERRORE in seq_var, TROVATO "++ show(a))
+seq_var (a:_)                  = Raise ("ERRORE in seq_var, TROVATO "++ show(a))
 
 -- Sep_Exp ::=  , Exp Sep_Exp | epsilon
 {-
