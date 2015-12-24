@@ -1,3 +1,5 @@
+-- ANALIZZATORE LESSICALE 
+-- @see lexer-document.pdf
 module Lexer (
   Token(..),
   Symbol_T(..),
