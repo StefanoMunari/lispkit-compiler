@@ -303,26 +303,26 @@ funt1 x                     = Return x
 
 -- F::= var Y | exp_const | (ExpA)
 {-
-    se è un espressione costante
-            => successore
-            ~> altrimenti verifica l'intero input attraverso
-                una funzione ausiliaria:
-                                {identificatore ..} =>
-                                        verifica che il successore sia "Y"
-                                {( ..} =>
-                                        verifica che il successore sia "ExpA"
-                                        verifica che il successore di "ExpA"
-                                        sia ")"
-                                {.. } => eccezione
+    {identificatore ..} =>
+            verifica che il successore sia "Y"
+    {( ..} =>
+            verifica che il successore sia "ExpA"
+            verifica che il successore di "ExpA"
+            sia ")"                     
+    {Number || Nil || Bool || String ..} => 
+                                    successore
+    {.. } => eccezione
 -}
 funf:: [Token] -> Exc [Token]
-funf (a:b)                 = if (exp_const a) then Return b
-                                              else fX (a:b)
-fX ((Id _):b)              = fuy b
-fX ((Symbol LPAREN):b)     = do
+funf (Id a : b)              = fuy b 
+funf (Symbol LPAREN : b)     = do
                               x<- expa b
                               rec_rp x
-fX (a:_)                   = Raise ("ERRORE in fX, TROVATO"++ show(a))
+funf (Number a : b)          = Return b
+funf (Nil : b)               = Return b
+funf (Bool a : b)            = Return b
+funf (String a : b)          = Return b
+funf (a : _)                 = Raise ("ERRORE in funf, TROVATO"++ show(a))
 
 -- Y :: = (Seq_Exp) | epsilon
 {-
@@ -336,19 +336,6 @@ fuy ((Symbol LPAREN):b)      =  do
                                  x <- seq_exp b
                                  rec_rp x
 fuy x                        = Return x
-
--- espressione costante (exp_const)
-{-
-  input is
-    Number || Nil || Bool || String => True
-    otherwise => False
--}
-exp_const:: Token -> Bool
-exp_const (Number _)  =  True
-exp_const Nil         =  True
-exp_const (Bool _)    =  True
-exp_const (String _)  =  True
-exp_const  _          = False
 
 -- Seq_Exp::= Exp Sep_Exp |epsilon
 {-
