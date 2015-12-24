@@ -314,7 +314,7 @@ funt1 x                     = Return x
     {.. } => eccezione
 -}
 funf:: [Token] -> Exc [Token]
-funf (Id a : b)              = fuy b 
+funf (Id a : b)              = funy b 
 funf (Symbol LPAREN : b)     = do
                               x<- expa b
                               rec_rp x
@@ -331,11 +331,11 @@ funf (a : _)                 = Raise ("ERRORE in funf, TROVATO"++ show(a))
                              controlla che il successore di "Seq_Exp" sia ")"
   altrimenti => epsilon
 -}
-fuy:: [Token] -> Exc [Token]
-fuy ((Symbol LPAREN):b)      =  do
+funy:: [Token] -> Exc [Token]
+funy (Symbol LPAREN : b)      =  do
                                  x <- seq_exp b
                                  rec_rp x
-fuy x                        = Return x
+funy x                        = Return x
 
 -- Seq_Exp::= Exp Sep_Exp |epsilon
 {-
