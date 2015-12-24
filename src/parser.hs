@@ -272,25 +272,14 @@ exp x                       =  expa x
 
 
 -- ExpA::= T E1
-{- NOTA: @see GRAMMATICA G1
-  l'input è T
-  il successore è E1
--}
 expa:: [Token] -> Exc [Token]
 expa a = do
            x<- funt a
            fune1 x
 
 -- E1::= OPA T E1 | epsilon
-{- NOTA: @see GRAMMATICA G1, contiene OPA::= + | -
- {+ ..} =>
-         verifica che il successore sia "T"
-         verifica che il successore di "T" sia "E1"
- {"-" ..} =>
-         @sameas E1::{+ ..}
- {.. } => epsilon
--}
-fune1:: [Token] -> Exc [Token]
+-- NOTA: contiene OPA::= + | -
+fune1:: [Token] -> Exc ([Token], LKC)
 fune1 (Symbol PLUS : b)    = do
                              x<- funt b
                              fune1 x
@@ -310,45 +299,30 @@ funt a = do
            funt1 x
 
 -- T1::= OPM F T1 | epsilon
-{- NOTA: contiene OPM::= * | /
-  {* ..} =>
-          verifica che il successore sia "F"
-          verifica che il successore di "F" sia "T1"
-  {/ ..} =>
-          @sameas T1::{* ..}
-  {.. } => epsilon
--}
-funt1:: [Token] -> Exc [Token]
+-- NOTA: contiene OPM::= * | /
+funt1:: [Token] -> Exc ([Token], LKC)
 funt1 (Symbol TIMES : b)    = do
-                              x<-funf b
-                              funt1 x
+                              y<-funf b
+                              x<-funt1 y
 funt1 (Symbol DIVISION : b) = do
                               x<-funf b
                               funt1 x
 funt1 x                     = Return x
 
 -- F::= var Y | exp_const | (ExpA)
-{-
-    {identificatore ..} =>
-            verifica che il successore sia "Y"
-    {( ..} =>
-            verifica che il successore sia "ExpA"
-            verifica che il successore di "ExpA"
-            sia ")"                     
-    {Number || Nil || Bool || String ..} => 
-                                    successore
-    {.. } => eccezione
--}
-funf:: [Token] -> Exc [Token]
-funf (Id a : b)              = funy b 
+funf:: [Token] -> Exc ([Token], LKC)
+funf (Id a : b)              = do
+                               (x, val) <- funy b (VAR a)
+                               Return (x, val) 
 funf (Symbol LPAREN : b)     = do
-                              x<- expa b
-                              rec_rp x
-funf (Number a : b)          = Return b
-funf (Nil : b)               = Return b
-funf (Bool a : b)            = Return b
-funf (String a : b)          = Return b
-funf (a : _)                 = Raise ("ERRORE in funf, TROVATO"++ show(a))
+                              (y, val)  <- expa b
+                              x         <- rec_rp y
+                              Return (x, val)
+funf (Number a : b)          = Return (b, NUM a)
+funf (Nil : b)               = Return (b, NIL)
+funf (Bool a : b)            = Return (b, BOO a)
+funf (String a : b)          = Return (b, STRI a)
+funf (a : _)                 = Raise  ("ERRORE in funf, TROVATO"++ show(a))
 
 -- Y :: = (Seq_Exp) | epsilon
 {-
