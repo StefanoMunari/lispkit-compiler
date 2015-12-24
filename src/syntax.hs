@@ -57,7 +57,7 @@ raise e = Raise e
 rec_key:: [Token] -> Exc [Token]
 rec_key (Keyword LET : b)    = Return b
 rec_key (Keyword LETREC : b) = Return b
-rec_key (a : b)                = Raise ("trovato " ++ show(a) ++", atteso LET o LETREC")
+rec_key (a : _)              = Raise ("trovato " ++ show(a) ++", atteso LET o LETREC")
 rec_key  x                   = Raise ("ERRORE STRANO"  ++  show(x))
 
 -- riconosce : in
@@ -66,7 +66,7 @@ rec_key  x                   = Raise ("ERRORE STRANO"  ++  show(x))
 -}
 rec_in:: [Token] -> Exc[Token]
 rec_in (Keyword IN : b)= Return b
-rec_in (a : b)           = Raise ("trovato " ++ show(a) ++ ", atteso IN")
+rec_in (a : _)         = Raise ("trovato " ++ show(a) ++ ", atteso IN")
 
 -- riconosce : end
 {-
@@ -74,7 +74,7 @@ rec_in (a : b)           = Raise ("trovato " ++ show(a) ++ ", atteso IN")
 -}
 rec_end:: [Token] -> Exc [Token]
 rec_end (Keyword END : b)= Return b
-rec_end (a : b)            = Raise ("trovato " ++ show(a) ++ ", atteso END")
+rec_end (a : _)          = Raise ("trovato " ++ show(a) ++ ", atteso END")
 
 -- riconosce : then
 {-
@@ -82,7 +82,7 @@ rec_end (a : b)            = Raise ("trovato " ++ show(a) ++ ", atteso END")
 -}
 rec_then:: [Token] -> Exc [Token]
 rec_then (Keyword THEN : b)= Return b
-rec_then (a : b)             = Raise ("trovato " ++ show(a) ++ ", atteso THEN")
+rec_then (a : _)           = Raise ("trovato " ++ show(a) ++ ", atteso THEN")
 
 -- riconosce : else
 {-
@@ -90,7 +90,7 @@ rec_then (a : b)             = Raise ("trovato " ++ show(a) ++ ", atteso THEN")
 -}
 rec_else:: [Token] -> Exc [Token]
 rec_else (Keyword ELSE : b)= Return b
-rec_else (a : b)             = Raise ("trovato " ++ show(a) ++ ", atteso ELSE")
+rec_else (a : _)           = Raise ("trovato " ++ show(a) ++ ", atteso ELSE")
 
 -- riconosce : (
 {-
@@ -98,7 +98,7 @@ rec_else (a : b)             = Raise ("trovato " ++ show(a) ++ ", atteso ELSE")
 -}
 rec_lp:: [Token] -> Exc [Token]
 rec_lp (Symbol LPAREN : b)= Return b
-rec_lp (a : b)              = Raise ("trovato " ++ show(a) ++ ", atteso (")
+rec_lp (a : _)            = Raise ("trovato " ++ show(a) ++ ", atteso (")
 
 -- riconosce : )
 {-
@@ -106,7 +106,7 @@ rec_lp (a : b)              = Raise ("trovato " ++ show(a) ++ ", atteso (")
 -}
 rec_rp:: [Token] -> Exc [Token]
 rec_rp (Symbol RPAREN : b)= Return b
-rec_rp (a : b)              = Raise ("trovato " ++ show(a) ++ ", attesa )")
+rec_rp (a : _)            = Raise ("trovato " ++ show(a) ++ ", attesa )")
 
 -- riconosce : ,
 {-
@@ -114,7 +114,7 @@ rec_rp (a : b)              = Raise ("trovato " ++ show(a) ++ ", attesa )")
 -}
 rec_virg:: [Token] -> Exc [Token]
 rec_virg (Symbol VIRGOLA : b)= Return  b
-rec_virg (a : b)               = Raise ("trovato " ++ show(a) ++ ", attesa ,")
+rec_virg (a : _)             = Raise ("trovato " ++ show(a) ++ ", attesa ,")
 
 
 -- riconosce : =
@@ -123,7 +123,7 @@ rec_virg (a : b)               = Raise ("trovato " ++ show(a) ++ ", attesa ,")
 -}
 rec_equals:: [Token] -> Exc [Token]
 rec_equals (Symbol EQUALS : b)= Return b
-rec_equals (a : b)              = Raise ("trovato " ++ show(a) ++ ", atteso =")
+rec_equals (a : _)            = Raise ("trovato " ++ show(a) ++ ", atteso =")
 
 ------------------------------------------------------------------------
 -- Parsing di simboli non terminali
@@ -155,11 +155,11 @@ prog a = do
  (a:_) : se non è un'identificatore viene sollevata un'eccezione
 -}
 bind:: [Token] -> Exc [Token]
-bind ((Id a):b)            =  do
+bind (Id a : b)            =  do
                                x<- rec_equals b
                                y<- exp x
                                funx y
-bind (a:_)                  = Raise ("BINDER CON "++ show(a) ++" A SINISTRA")
+bind (a : _)                  = Raise ("BINDER CON "++ show(a) ++" A SINISTRA")
 
 -- X::= and Bind | epsilon
 {-
