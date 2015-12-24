@@ -196,13 +196,28 @@ bind (a : _)               =  Raise ("BINDER CON "++ show(a) ++" A SINISTRA")
 
 -- X::= and Bind | epsilon
 {-
- {and ...} => il successore deve essere un "Bind"
- {in ...} => ritorna l'intero input // in questo caso sto valutando FOLLOW(X)
-                                    // perchè X contiene epsilon
+  AND -> 
+        genera un altro binder passando il successore b
+  IN ->
+        ritorna la lista dei prossimi token da analizzare
+        e una lista vuota in quanto non ha nessun valore
+        LKC da inserire
+  otherwise -> 
+              qualsiasi altro elemento solleva un'eccezione
+  Nota:
+    il tipo [(LKC,LKC)] è conforme al tipo della funzione bind
+    perchè mutuamente ricorsiva
 -}
-funx:: [Token] -> Exc [Token]
+funx:: [Token] -> Exc ([Token], [(LKC,LKC)])
 funx (Keyword AND : b)     = bind b
-funx a@(Keyword IN : _)    = Return a
+funx a@(Keyword IN : _)    = Return (a, []) -- binders terminati
+                                            -- la keyword IN permette
+                                            -- di segnalare la fine dei
+                                            -- binders e l'inizio della parte
+                                            -- dx del {let letrec},
+                                            -- infatti viene riconosciuta in
+                                            -- prog subito dopo i binder
+                                            -- attraverso rec_in
 funx (a : _)               = Raise ("DOPO BINDERS; TROVATO"++show(a))
 
 -- Exp ::= Prog | lambda(Seq_Var) Exp | ExpA | OPP(Seq_Exp) |
