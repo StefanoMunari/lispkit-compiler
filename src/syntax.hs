@@ -55,9 +55,9 @@ raise e = Raise e
       viene sollevata un'eccezione e termina la computazione
 -}
 rec_key:: [Token] -> Exc [Token]
-rec_key ((Keyword LET):b)    = Return b
-rec_key ((Keyword LETREC):b) = Return b
-rec_key (a:b)                = Raise ("trovato " ++ show(a) ++", atteso LET o LETREC")
+rec_key (Keyword LET : b)    = Return b
+rec_key (Keyword LETREC : b) = Return b
+rec_key (a : b)                = Raise ("trovato " ++ show(a) ++", atteso LET o LETREC")
 rec_key  x                   = Raise ("ERRORE STRANO"  ++  show(x))
 
 -- riconosce : in
@@ -65,56 +65,56 @@ rec_key  x                   = Raise ("ERRORE STRANO"  ++  show(x))
   @sameas {let letrec}
 -}
 rec_in:: [Token] -> Exc[Token]
-rec_in ((Keyword IN):b)= Return b
-rec_in (a:b)           = Raise ("trovato " ++ show(a) ++ ", atteso IN")
+rec_in (Keyword IN : b)= Return b
+rec_in (a : b)           = Raise ("trovato " ++ show(a) ++ ", atteso IN")
 
 -- riconosce : end
 {-
   @sameas {let letrec}
 -}
 rec_end:: [Token] -> Exc [Token]
-rec_end ((Keyword END):b)= Return b
-rec_end (a:b)            = Raise ("trovato " ++ show(a) ++ ", atteso END")
+rec_end (Keyword END : b)= Return b
+rec_end (a : b)            = Raise ("trovato " ++ show(a) ++ ", atteso END")
 
 -- riconosce : then
 {-
   @sameas {let letrec}
 -}
 rec_then:: [Token] -> Exc [Token]
-rec_then ((Keyword THEN):b)= Return b
-rec_then (a:b)             = Raise ("trovato " ++ show(a) ++ ", atteso THEN")
+rec_then (Keyword THEN : b)= Return b
+rec_then (a : b)             = Raise ("trovato " ++ show(a) ++ ", atteso THEN")
 
 -- riconosce : else
 {-
   @sameas {let letrec}
 -}
 rec_else:: [Token] -> Exc [Token]
-rec_else ((Keyword ELSE):b)= Return b
-rec_else (a:b)             = Raise ("trovato " ++ show(a) ++ ", atteso ELSE")
+rec_else (Keyword ELSE : b)= Return b
+rec_else (a : b)             = Raise ("trovato " ++ show(a) ++ ", atteso ELSE")
 
 -- riconosce : (
 {-
   @sameas {let letrec}
 -}
 rec_lp:: [Token] -> Exc [Token]
-rec_lp ((Symbol LPAREN):b)= Return b
-rec_lp (a:b)              = Raise ("trovato " ++ show(a) ++ ", atteso (")
+rec_lp (Symbol LPAREN : b)= Return b
+rec_lp (a : b)              = Raise ("trovato " ++ show(a) ++ ", atteso (")
 
 -- riconosce : )
 {-
   @sameas {let letrec}
 -}
 rec_rp:: [Token] -> Exc [Token]
-rec_rp ((Symbol RPAREN):b)= Return b
-rec_rp (a:b)              = Raise ("trovato " ++ show(a) ++ ", attesa )")
+rec_rp (Symbol RPAREN : b)= Return b
+rec_rp (a : b)              = Raise ("trovato " ++ show(a) ++ ", attesa )")
 
 -- riconosce : ,
 {-
   @sameas {let letrec}
 -}
 rec_virg:: [Token] -> Exc [Token]
-rec_virg ((Symbol VIRGOLA):b)= Return  b
-rec_virg (a:b)               = Raise ("trovato " ++ show(a) ++ ", attesa ,")
+rec_virg (Symbol VIRGOLA : b)= Return  b
+rec_virg (a : b)               = Raise ("trovato " ++ show(a) ++ ", attesa ,")
 
 
 -- riconosce : =
@@ -122,17 +122,17 @@ rec_virg (a:b)               = Raise ("trovato " ++ show(a) ++ ", attesa ,")
   @sameas {let letrec}
 -}
 rec_equals:: [Token] -> Exc [Token]
-rec_equals ((Symbol EQUALS):b)= Return b
-rec_equals (a:b)              = Raise ("trovato " ++ show(a) ++ ", atteso =")
+rec_equals (Symbol EQUALS : b)= Return b
+rec_equals (a : b)              = Raise ("trovato " ++ show(a) ++ ", atteso =")
 
 ------------------------------------------------------------------------
 -- Parsing di simboli non terminali
 
--- Funzione per testare parte2 : 
+-- Funzione per testare PARTE1 [parser predittivo]: 
 -- data una lista di token stampa il risultato del parsing
--- RAGGIUNTO:
--- ERRORE:
--- (Prog + $) stampa il risultato di un Prog
+-- Risultato corretto => RAGGIUNTO: 
+-- Risultato errato => ERRORE:
+-- (Prog + $)
 progdoll::[Token] -> String
 progdoll x= show (prog x)
 
