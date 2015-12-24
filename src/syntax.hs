@@ -168,9 +168,9 @@ bind (a : _)                  = Raise ("BINDER CON "++ show(a) ++" A SINISTRA")
                                     // perchè X contiene epsilon
 -}
 funx:: [Token] -> Exc [Token]
-funx ((Keyword AND):b)     = bind b
-funx a@((Keyword IN):b)    = Return a
-funx (a:_)                 = Raise ("DOPO BINDERS; TROVATO"++show(a))
+funx (Keyword AND : b)     = bind b
+funx a@(Keyword IN : _)    = Return a
+funx (a : _)               = Raise ("DOPO BINDERS; TROVATO"++show(a))
 
 -- Exp ::= Prog | lambda(Seq_Var) Exp | ExpA | OPP(Seq_Exp) |
 --         if Exp then Exp else Exp
@@ -209,34 +209,34 @@ funx (a:_)                 = Raise ("DOPO BINDERS; TROVATO"++show(a))
 
 -}
 exp:: [Token] -> Exc [Token]
-exp a@((Keyword LET):b)    = (prog a)
-exp a@((Keyword LETREC):b) = (prog a)
-exp ((Keyword LAMBDA):b)   = do
+exp a@(Keyword LET : b)    = prog a
+exp a@(Keyword LETREC : b) = prog a
+exp (Keyword LAMBDA : b)   = do
                                 x<-rec_lp b
                                 y<-seq_var x
                                 exp y
-exp ((Operator CONS):b)    = do
+exp (Operator CONS : b)    = do
                                 x<-rec_lp b
                                 y<-exp x
                                 z<-rec_virg y
                                 w<-exp z
                                 rec_rp w
-exp ((Operator LEQ):b)     = do
+exp (Operator LEQ : b)     = do
                                 x<-rec_lp b
                                 y<-exp x
                                 z<-rec_virg y
                                 w<- exp z
                                 rec_rp w
-exp ((Operator EQ):b)      = do
+exp (Operator EQ : b)      = do
                                 x<-rec_lp b
                                 y<-exp x
                                 z<- rec_virg y
                                 w<-exp z
                                 rec_rp w
-exp ((Operator CAR):b)      = exp b
-exp ((Operator CDR):b)      = exp b
-exp ((Operator ATOM):b)     = exp b
-exp ((Keyword IF):b)        = do
+exp (Operator CAR : b)      = exp b
+exp (Operator CDR : b)      = exp b
+exp (Operator ATOM : b)     = exp b
+exp (Keyword IF : b)        = do
                                 x<- exp b
                                 y<-rec_then x
                                 z<-exp y
@@ -265,10 +265,10 @@ expa a = do
  {.. } => epsilon
 -}
 fune1:: [Token] -> Exc [Token]
-fune1 ((Symbol PLUS):b)    = do
+fune1 (Symbol PLUS : b)    = do
                              x<- funt b
                              fune1 x
-fune1 ((Symbol MINUS):b)   = do
+fune1 (Symbol MINUS : b)   = do
                              x<-funt b
                              fune1 x
 fune1 x                    = Return x
@@ -293,13 +293,13 @@ funt a = do
   {.. } => epsilon
 -}
 funt1:: [Token] -> Exc [Token]
-funt1 ((Symbol TIMES):b)   = do
+funt1 (Symbol TIMES : b)    = do
                               x<-funf b
                               funt1 x
-funt1 ((Symbol DIVISION):b)= do
+funt1 (Symbol DIVISION : b) = do
                               x<-funf b
                               funt1 x
-funt1 x                    = Return x
+funt1 x                     = Return x
 
 -- F::= var Y | exp_const | (ExpA)
 {-
