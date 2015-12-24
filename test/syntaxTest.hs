@@ -5,8 +5,7 @@ ts2,
 ts3,
 ts4,
 ts5,
-ts6,
-ts7
+ts6
 ) 
 where
 
