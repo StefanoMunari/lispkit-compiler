@@ -1,7 +1,10 @@
+-- ANALIZZATORE SINTATTICO - PARTE1 [parser predittivo]
+-- @see syntax-1-document.pdf
+-- @see syntax-2-document.pdf => part3: il parser predittivo
+-- @description controlla che il programma sia sintatticamente corretto
 module Syntax (
-progdoll
-)
-where
+  progdoll
+) where
 
 import Lexer
 import LexerTest
@@ -43,17 +46,17 @@ raise e = Raise e
 -- Parsing di simboli terminali
 
 -- {let  letrec}
-rec_key::[Token]-> Exc [Token]
+rec_key:: [Token] -> Exc [Token]
 rec_key ((Keyword LET):b)    = Return b
 rec_key ((Keyword LETREC):b) = Return b
 rec_key (a:b)                = Raise ("trovato " ++ show(a) ++", atteso LET o LETREC")
 rec_key  x                   = Raise ("ERRORE STRANO"  ++  show(x))
 
-rec_in::[Token]->Exc[Token]
+rec_in:: [Token] -> Exc[Token]
 rec_in ((Keyword IN):b)= Return b
 rec_in (a:b)           = Raise ("trovato " ++ show(a) ++ ", atteso IN")
 
-rec_end::[Token]->Exc[Token]
+rec_end:: [Token] -> Exc [Token]
 rec_end ((Keyword END):b)= Return b
 rec_end (a:b)            = Raise ("trovato " ++ show(a) ++ ", atteso END")
 
@@ -66,6 +69,7 @@ rec_end (a:b)            = Raise ("trovato " ++ show(a) ++ ", atteso END")
     ~>
       altrimenti viene sollevata un'eccezione e termina la computazione
 -}
+rec_then:: [Token] -> Exc [Token]
 rec_then ((Keyword THEN):b)= Return b
 rec_then (a:b)             = Raise ("trovato " ++ show(a) ++ ", atteso THEN")
 
@@ -73,6 +77,7 @@ rec_then (a:b)             = Raise ("trovato " ++ show(a) ++ ", atteso THEN")
 {-
   @sameas then
 -}
+rec_else:: [Token] -> Exc [Token]
 rec_else ((Keyword ELSE):b)= Return b
 rec_else (a:b)             = Raise ("trovato " ++ show(a) ++ ", atteso ELSE")
 
@@ -80,6 +85,7 @@ rec_else (a:b)             = Raise ("trovato " ++ show(a) ++ ", atteso ELSE")
 {-
   @sameas then
 -}
+rec_lp:: [Token] -> Exc [Token]
 rec_lp ((Symbol LPAREN):b)= Return b
 rec_lp (a:b)              = Raise ("trovato " ++ show(a) ++ ", atteso (")
 
@@ -87,6 +93,7 @@ rec_lp (a:b)              = Raise ("trovato " ++ show(a) ++ ", atteso (")
 {-
   @sameas then
 -}
+rec_rp:: [Token] -> Exc [Token]
 rec_rp ((Symbol RPAREN):b)= Return b
 rec_rp (a:b)              = Raise ("trovato " ++ show(a) ++ ", attesa )")
 
@@ -94,6 +101,7 @@ rec_rp (a:b)              = Raise ("trovato " ++ show(a) ++ ", attesa )")
 {-
   @sameas then
 -}
+rec_virg:: [Token] -> Exc [Token]
 rec_virg ((Symbol VIRGOLA):b)= Return  b
 rec_virg (a:b)               = Raise ("trovato " ++ show(a) ++ ", attesa ,")
 
@@ -102,6 +110,7 @@ rec_virg (a:b)               = Raise ("trovato " ++ show(a) ++ ", attesa ,")
 {-
   @sameas then
 -}
+rec_equals:: [Token] -> Exc [Token]
 rec_equals ((Symbol EQUALS):b)= Return b
 rec_equals (a:b)              = Raise ("trovato " ++ show(a) ++ ", atteso =")
 
@@ -134,6 +143,7 @@ prog a = do
 
  (a:_) : se non è un'identificatore viene sollevata un'eccezione
 -}
+bind:: [Token] -> Exc [Token]
 bind ((Id a):b)            =  do
                                x<- rec_equals b
                                y<- exp x
@@ -146,6 +156,7 @@ bind (a:_)                  = Raise ("BINDER CON "++ show(a) ++" A SINISTRA")
  {in ...} => ritorna l'intero input // in questo caso sto valutando FOLLOW(X)
                                     // perchè X contiene epsilon
 -}
+funx:: [Token] -> Exc [Token]
 funx ((Keyword AND):b)     = bind b
 funx a@((Keyword IN):b)    = Return a
 funx (a:_)                 = Raise ("DOPO BINDERS; TROVATO"++show(a))
@@ -186,7 +197,7 @@ funx (a:_)                 = Raise ("DOPO BINDERS; TROVATO"++show(a))
               verifica che il successore di "else" sia un'espressione
 
 -}
-exp::[Token]->Exc[Token]
+exp:: [Token] -> Exc [Token]
 exp a@((Keyword LET):b)    = (prog a)
 exp a@((Keyword LETREC):b) = (prog a)
 exp ((Keyword LAMBDA):b)   = do
@@ -228,6 +239,7 @@ exp x                       =  expa x
   l'input è T
   il successore è E1
 -}
+expa:: [Token] -> Exc [Token]
 expa a = do
            x<- funt a
            fune1 x
@@ -241,6 +253,7 @@ expa a = do
          @sameas E1::{+ ..}
  {.. } => epsilon
 -}
+fune1:: [Token] -> Exc [Token]
 fune1 ((Symbol PLUS):b)    = do
                              x<- funt b
                              fune1 x
@@ -254,6 +267,7 @@ fune1 x                    = Return x
   l'input è F
   il successore è T1
 -}
+funt:: [Token] -> Exc [Token]
 funt a = do
            x<-funf a
            funt1 x
@@ -267,6 +281,7 @@ funt a = do
           @sameas T1::{* ..}
   {.. } => epsilon
 -}
+funt1:: [Token] -> Exc [Token]
 funt1 ((Symbol TIMES):b)   = do
                               x<-funf b
                               funt1 x
@@ -289,6 +304,7 @@ funt1 x                    = Return x
                                         sia ")"
                                 {.. } => eccezione
 -}
+funf:: [Token] -> Exc [Token]
 funf (a:b)                 = if (exp_const a) then Return b
                                               else fX (a:b)
 fX ((Id _):b)              = fuy b
@@ -304,6 +320,7 @@ fX (a:_)                   = Raise ("ERRORE in fX, TROVATO"++ show(a))
                              controlla che il successore di "Seq_Exp" sia ")"
   altrimenti => epsilon
 -}
+fuy:: [Token] -> Exc [Token]
 fuy ((Symbol LPAREN):b)      =  do
                                  x <- seq_exp b
                                  rec_rp x
@@ -315,7 +332,7 @@ fuy x                        = Return x
     Number || Nil || Bool || String => True
     otherwise => False
 -}
-exp_const::Token -> Bool
+exp_const:: Token -> Bool
 exp_const (Number _)  =  True
 exp_const Nil         =  True
 exp_const (Bool _)    =  True
