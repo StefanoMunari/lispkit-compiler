@@ -24,26 +24,26 @@ import Prelude hiding (EQ,exp)
 
 data LKC 
     = ETY --segnala epsilon productions
-    | VAR String 
-    | NUM Integer 
-    | STRI String 
-    | BOO Bool 
+    | VAR     String 
+    | NUM     Integer 
+    | STRI    String 
+    | BOO     Bool 
     | NIL 
-    | ADDLKCLKC 
-    | SUBLKCLKC 
-    | MULTLKCLKC 
-    | REMLKCLKC
-    | DIVLKCLKC 
-    | EQCLKCLKC
-    | LEQCLKCLKC
-    | CARC LKC 
-    | CDRC LKC 
-    | CONSC LKC LKC 
-    | ATOMC LKC 
-    | IFC LKC LKC LKC 
+    | ADD     LKC LKC 
+    | SUB     LKC LKC 
+    | MULT    LKC LKC 
+    | REM     LKC LKC
+    | DIV     LKC LKC 
+    | EQC     LKC LKC
+    | LEQC    LKC LKC
+    | CARC    LKC 
+    | CDRC    LKC 
+    | CONSC   LKC LKC 
+    | ATOMC   LKC 
+    | IFC     LKC LKC LKC 
     | LAMBDAC [LKC] LKC 
-    | CALL LKC [LKC] -- funzione_da_invocare [parametri_attuali]
-    | LETC LKC [(LKC,LKC)] 
+    | CALL    LKC [LKC] -- funzione_da_invocare [parametri_attuali]
+    | LETC    LKC [(LKC,LKC)] 
     | LETRECC LKC [(LKC, LKC)] 
     deriving(Show, Eq)
 
@@ -209,13 +209,13 @@ bind (a : _)               =  Raise ("BINDER CON "++ show(a) ++" A SINISTRA")
     perchè mutuamente ricorsiva
 -}
 funx:: [Token] -> Exc ([Token], [(LKC,LKC)])
-funx (Keyword AND : b)     = bind b
+funx (Keyword AND : b)     = bind b -- scarto il token "AND", non serve nell'albero
 funx a@(Keyword IN : _)    = Return (a, []) -- binders terminati
                                             -- la keyword IN permette
                                             -- di segnalare la fine dei
                                             -- binders e l'inizio della parte
                                             -- dx del {let letrec},
-                                            -- infatti viene riconosciuta in
+                                            -- viene riconosciuta in
                                             -- prog subito dopo i binder
                                             -- attraverso rec_in
 funx (a : _)               = Raise ("DOPO BINDERS; TROVATO"++show(a))
@@ -223,74 +223,51 @@ funx (a : _)               = Raise ("DOPO BINDERS; TROVATO"++show(a))
 -- Exp ::= Prog | lambda(Seq_Var) Exp | ExpA | OPP(Seq_Exp) |
 --         if Exp then Exp else Exp
 -- NOTA: contiene OPP::= cons | car | cdr | eq | leq | atom
-{-
-  {let letrec ...} => prog dell'intero input // perchè prog verifica che
-                                             // l'intera definizione
-                                             // dell'espressione
-                                             // sia corretta e non solo la testa
-  {lambda ...} => 
-                verifica che il successore di "LAMBDA" sia "("
-                verifica che il successore di seq_var sia un'espressione
-  {cons ...} =>
-                verifica che sia il successore sia "("
-                verifica che il successore di "(" sia un'espressione
-                verifica che il successore dell'espressione sia "," // cons
-                                                // costruisce una lista sempre
-                                                // con 2 elementi cons(car, cdr)
-                verifica che il successore di "," sia un'espressione
-                verifica che il successore dell'espressione sia ")"
-  {leq ...} =>
-              @sameas Exp::{cons ...}
-  {eq ...} =>
-              @sameas Exp::{cons ...}
-  {car ...} =>
-              verifica che il successore sia un'espressione
-  {cdr ...} =>
-              @sameas Exp::{car ...}
-  {atom ...} =>
-                @sameas Exp::{car ...}
-  {if ...} => NOTA: if <-> else
-              verifica che il successore sia un'espressione
-              verifica che il successore dell'espressione sia "then"
-              verifica che il successore di "then" sia un'espressione
-              verifica che il successore dell'espressione sia "else"
-              verifica che il successore di "else" sia un'espressione
-
--}
-exp:: [Token] -> Exc [Token]
+exp:: [Token] -> Exc ([Token], LKC)
 exp a@(Keyword LET : b)    = prog a
 exp a@(Keyword LETREC : b) = prog a
 exp (Keyword LAMBDA : b)   = do
-                                x<-rec_lp b
-                                y<-seq_var x
-                                exp y
+                                x                <- rec_lp b -- scarto il token "(", non serve nell'albero
+                                (y, parameters)  <- seq_var x
+                                (z, body)        <- exp y
+                                Return (z, LAMBDAC parameters body)
 exp (Operator CONS : b)    = do
-                                x<-rec_lp b
-                                y<-exp x
-                                z<-rec_virg y
-                                w<-exp z
-                                rec_rp w
+                                w <- rec_lp b
+                                (x, car)    <- exp w
+                                y           <- rec_virg x
+                                (z, cdr)    <- exp y
+                                k           <- rec_rp z
+                                Return (k, CONSC car cdr)
 exp (Operator LEQ : b)     = do
-                                x<-rec_lp b
-                                y<-exp x
-                                z<-rec_virg y
-                                w<- exp z
-                                rec_rp w
+                                w        <- rec_lp b
+                                (x, op0) <- exp w
+                                y        <- rec_virg x
+                                (z, op1) <- exp y
+                                k        <- rec_rp z
+                                Return (k, LEQC op0 op1)
 exp (Operator EQ : b)      = do
-                                x<-rec_lp b
-                                y<-exp x
-                                z<- rec_virg y
-                                w<-exp z
-                                rec_rp w
-exp (Operator CAR : b)      = exp b
-exp (Operator CDR : b)      = exp b
-exp (Operator ATOM : b)     = exp b
+                                w        <- rec_lp b
+                                (x, op0) <- exp w
+                                y        <- rec_virg x
+                                (z, op1) <- exp y
+                                k        <- rec_rp z
+                                Return (k, EQC op0 op1)
+exp (Operator CAR : b)      = do
+                                (w, list) <- exp b
+                                Return (w, CARC list)
+exp (Operator CDR : b)      = do
+                                (w, list) <- exp b
+                                Return (w, CDRC list)
+exp (Operator ATOM : b)     = do
+                                (w, constant) <- exp b
+                                Return (w, ATOMC constant)
 exp (Keyword IF : b)        = do
-                                x<- exp b
-                                y<-rec_then x
-                                z<-exp y
-                                w<-rec_else z
-                                exp w
+                                (w, condition)   <- exp b
+                                x <- rec_then w
+                                (y, consequent)  <- exp x
+                                z <- rec_else y
+                                (k, alternative) <- exp z
+                                Return (k, IFC condition consequent alternative)
 exp x                       =  expa x
 
 
@@ -411,7 +388,7 @@ seq_exp a                      = do
       (contenuta nella prima parte di a)
   Nessuno dei precedenti => eccezione
 -}
-seq_var:: [Token] -> Exc [Token]
+seq_var:: [Token] -> Exc ([Token], [LKC])
 seq_var (Id a : b)              = seq_var b
 seq_var (Symbol RPAREN : b)     = Return b
 seq_var (a: _)                  = Raise ("ERRORE in seq_var, TROVATO "++ show(a))
