@@ -180,8 +180,9 @@ funx (a : _)               = Raise ("DOPO BINDERS; TROVATO"++show(a))
                                              // l'intera definizione
                                              // dell'espressione
                                              // sia corretta e non solo la testa
-  {lambda ...} => @todo
-                   verifica che il successore di seq_var sia un'espressione
+  {lambda ...} => 
+                verifica che il successore di "LAMBDA" sia "("
+                verifica che il successore di seq_var sia un'espressione
   {cons ...} =>
                 verifica che sia il successore sia "("
                 verifica che il successore di "(" sia un'espressione
