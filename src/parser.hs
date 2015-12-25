@@ -309,7 +309,7 @@ funt1 x                     = Return x
 -- F::= var Y | exp_const | (ExpA)
 funf:: [Token] -> Exc ([Token], LKC)
 funf (Id a : b)              = do
-                               (x, val) <- funy b (VAR a)
+                               (x, val) <- funy b (VAR a) -- l'identificatore è un VAR in LKC
                                Return (x, val) 
 funf (Symbol LPAREN : b)     = do
                                 (y, val)  <- expa b
@@ -330,13 +330,18 @@ funy (Symbol LPAREN : b) var     =  do -- parsing di una chiamata a funzione
 funy x var                       =  Return x var
 
 -- Seq_Exp::= Exp Sep_Exp |epsilon
-seq_exp:: [Token] -> Exc ([Token], [LKC]) -- deve ritornare un tipo compatibile con
-                                          -- il secondo parametro del costruttore CALL
-                                          -- quindi [LKC], vedi funy
-seq_exp a@(Symbol RPAREN : b)  = Return a
+-- deve ritornare un tipo compatibile con
+-- il secondo parametro del costruttore CALL
+-- quindi [LKC], vedi funy
+seq_exp:: [Token] -> Exc ([Token], [LKC]) 
+seq_exp a@(Symbol RPAREN : _)  = Return (a, []) -- [] per compatibilità con CALL
 seq_exp a                      = do
-                                  x <- exp a
-                                  sep_exp x
+                                  (x, val)  <- exp a
+                                  (y, exps) <- sep_exp x
+                                  Return (y, val : exps ) 
+                                  -- attacca una espressione LKC
+                                  -- in testa ad una lista di espressioni LKC
+                                  -- calcolata in sep_exp 
 
 -- Seq_Var ::= var Seq_var | epsilon
 {-
