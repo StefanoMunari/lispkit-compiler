@@ -327,7 +327,7 @@ funy (Symbol LPAREN : b) var     =  do -- parsing di una chiamata a funzione
                                      (x, act_params) <- seq_exp b
                                       y              <- rec_rp x
                                     Return (y, CALL var act_params)
-funy x var                       =  Return x var
+funy x var                       =  Return (x, var)
 
 -- Seq_Exp::= Exp Sep_Exp |epsilon
 -- deve ritornare un tipo compatibile con
@@ -355,7 +355,7 @@ seq_exp a                      = do
 seq_var:: [Token] -> Exc ([Token], [LKC])
 seq_var (Id a : b)              = seq_var b
 seq_var (Symbol RPAREN : b)     = Return b
-seq_var (a : _)                  = Raise ("ERRORE in seq_var, TROVATO "++ show(a))
+seq_var (a : _)                 = Raise ("ERRORE in seq_var, TROVATO "++ show(a))
 
 -- Sep_Exp ::=  , Exp Sep_Exp | epsilon
 sep_exp:: [Token] -> Exc ([Token], [LKC])
