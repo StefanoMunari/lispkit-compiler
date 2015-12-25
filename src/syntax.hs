@@ -379,3 +379,4 @@ seq_var (a: _)                  = Raise ("ERRORE in seq_var, TROVATO "++ show(a)
 sep_exp:: [Token] -> Exc [Token]
 sep_exp (Symbol VIRGOLA : b)   = seq_exp b
 sep_exp a@(Symbol RPAREN : b)  = Return a
+sep_exp (a : _)                = Raise ("ERRORE in sep_exp, TROVATO "++ show(a))
