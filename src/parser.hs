@@ -42,7 +42,7 @@ data LKC
     | ATOMC   LKC 
     | IFC     LKC LKC LKC 
     | LAMBDAC [LKC] LKC 
-    | CALL    LKC [LKC] -- funzione_da_invocare [parametri_attuali]
+    | CALL    LKC [LKC]       -- CALL funzione_da_invocare [parametri_attuali]
     | LETC    LKC [(LKC,LKC)] 
     | LETRECC LKC [(LKC, LKC)] 
     deriving(Show, Eq)
@@ -227,10 +227,10 @@ exp:: [Token] -> Exc ([Token], LKC)
 exp a@(Keyword LET : b)    = prog a
 exp a@(Keyword LETREC : b) = prog a
 exp (Keyword LAMBDA : b)   = do
-                                x                <- rec_lp b -- scarto il token "(", non serve nell'albero
-                                (y, parameters)  <- seq_var x
-                                (z, body)        <- exp y
-                                Return (z, LAMBDAC parameters body)
+                                x                 <- rec_lp b -- scarto il token "(", non serve nell'albero
+                                (y, form_params)  <- seq_var x
+                                (z, body)         <- exp y
+                                Return (z, LAMBDAC form_params body)
 exp (Operator CONS : b)    = do
                                 w <- rec_lp b
                                 (x, car)    <- exp w
@@ -272,7 +272,8 @@ exp x                       =  expa x
 
 
 -- ExpA::= T E1
-expa:: [Token] -> Exc [Token]
+-- espressioni aritmetiche
+expa:: [Token] -> Exc ([Token], LKC)
 expa a = do
            x<- funt a
            fune1 x
@@ -289,10 +290,6 @@ fune1 (Symbol MINUS : b)   = do
 fune1 x                    = Return x
 
 -- T::= F T1
-{- NOTA: @see GRAMMATICA G1
-  l'input è F
-  il successore è T1
--}
 funt:: [Token] -> Exc [Token]
 funt a = do
            x<-funf a
@@ -315,9 +312,9 @@ funf (Id a : b)              = do
                                (x, val) <- funy b (VAR a)
                                Return (x, val) 
 funf (Symbol LPAREN : b)     = do
-                              (y, val)  <- expa b
-                              x         <- rec_rp y
-                              Return (x, val)
+                                (y, val)  <- expa b
+                                x         <- rec_rp y
+                                Return (x, val)
 funf (Number a : b)          = Return (b, NUM a)
 funf (Nil : b)               = Return (b, NIL)
 funf (Bool a : b)            = Return (b, BOO a)
@@ -325,29 +322,17 @@ funf (String a : b)          = Return (b, STRI a)
 funf (a : _)                 = Raise  ("ERRORE in funf, TROVATO"++ show(a))
 
 -- Y :: = (Seq_Exp) | epsilon
-{-
-  Se l'input inizia con "("
-                          => controlla che il successore sia "Seq_Exp"
-                             controlla che il successore di "Seq_Exp" sia ")"
-  altrimenti => epsilon
--}
-funy:: [Token] -> Exc [Token]
-funy (Symbol LPAREN : b)      =  do
-                                 x <- seq_exp b
-                                 rec_rp x
-funy x                        = Return x
+funy:: [Token] -> LKC -> Exc ([Token], LKC)
+funy (Symbol LPAREN : b) var     =  do -- parsing di una chiamata a funzione
+                                     (x, act_params) <- seq_exp b
+                                      y              <- rec_rp x
+                                    Return (y, CALL var act_params)
+funy x var                       =  Return x var
 
 -- Seq_Exp::= Exp Sep_Exp |epsilon
-{-
-  {) ..} =>
-    ritorna l'intero input, ha finito di calcolare la lista di parametri
-    (quest'ultima è contenuta nella prima parte di a)
-  a =>
-      verifica che a contenga "Exp", se esiste un errore questo viene gestito
-      da exp
-      verifica che il successore di "Exp" sia un "Sep_Exp"
--}
-seq_exp:: [Token] -> Exc [Token]
+seq_exp:: [Token] -> Exc ([Token], [LKC]) -- deve ritornare un tipo compatibile con
+                                          -- il secondo parametro del costruttore CALL
+                                          -- quindi [LKC], vedi funy
 seq_exp a@(Symbol RPAREN : b)  = Return a
 seq_exp a                      = do
                                   x <- exp a
