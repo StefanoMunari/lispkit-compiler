@@ -309,8 +309,8 @@ funt1 x                     = Return x
 -- F::= var Y | exp_const | (ExpA)
 funf:: [Token] -> Exc ([Token], LKC)
 funf (Id a : b)              = do
-                               (x, val) <- funy b (VAR a) -- l'identificatore è un VAR in LKC
-                               Return (x, val) 
+                               (x, val) <- funy b (VAR a) -- l'identificatore 
+                               Return (x, val)            -- è un VAR in LKC
 funf (Symbol LPAREN : b)     = do
                                 (y, val)  <- expa b
                                 x         <- rec_rp y
@@ -344,17 +344,12 @@ seq_exp a                      = do
                                   -- calcolata in sep_exp 
 
 -- Seq_Var ::= var Seq_var | epsilon
-{-
-  {Id ..} =>
-      verifica che il successore di "Id" sia un "Seq_Var"
-  {) ..} =>
-      ritorna l'input restante, ha finito di calcolare la lista di parametri
-      (contenuta nella prima parte di a)
-  Nessuno dei precedenti => eccezione
--}
+-- parsing di una sequenza di variabili
 seq_var:: [Token] -> Exc ([Token], [LKC])
-seq_var (Id a : b)              = seq_var b
-seq_var (Symbol RPAREN : b)     = Return b
+seq_var (Id a : b)              = do
+                                  (x, vars) <- seq_var b   -- vars è una sequenza
+                                  Return (x, VAR a : vars) -- di variabili
+seq_var (Symbol RPAREN : b)     = Return (b, [])
 seq_var (a : _)                 = Raise ("ERRORE in seq_var, TROVATO "++ show(a))
 
 -- Sep_Exp ::=  , Exp Sep_Exp | epsilon
