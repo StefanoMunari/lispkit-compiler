@@ -23,7 +23,7 @@ import Prelude hiding (EQ,exp)
 -- Tipo LKC (Lispkit Concreto)
 
 data LKC 
-    = ETY --segnala epsilon productions
+    = ETY     --segnala epsilon productions
     | VAR     String 
     | NUM     Integer 
     | STRI    String 
@@ -170,7 +170,7 @@ prog a = do
          x<-rec_key a
          y<-bind x
          z<-rec_in y
-         w<-exp z
+         w<-exp z   -- @doing
          rec_end w
 
 -- Bind::= var = Exp X
@@ -263,9 +263,9 @@ exp (Operator ATOM : b)     = do
                                 Return (w, ATOMC constant)
 exp (Keyword IF : b)        = do
                                 (w, condition)   <- exp b
-                                x <- rec_then w
+                                x                <- rec_then w
                                 (y, consequent)  <- exp x
-                                z <- rec_else y
+                                z                <- rec_else y
                                 (k, alternative) <- exp z
                                 Return (k, IFC condition consequent alternative)
 exp x                       =  expa x
@@ -279,34 +279,54 @@ expa a = do
            fune1 x
 
 -- E1::= OPA T E1 | epsilon
+-- somma, sottrazione
 -- NOTA: contiene OPA::= + | -
-fune1:: [Token] -> Exc ([Token], LKC)
-fune1 (Symbol PLUS : b)    = do
-                             x<- funt b
-                             fune1 x
-fune1 (Symbol MINUS : b)   = do
-                             x<-funt b
-                             fune1 x
-fune1 x                    = Return x
+-- attributi ereditati per definire i nuovi parametri della funzione
+fune1:: [Token] -> LKC -> Exc ([Token], LKC)
+fune1 (Symbol PLUS : a) op0  = do
+                               (x, op1)         <- funt a
+                               (y, expression)  <- fune1 x op1
+                              if expression == ETY
+                                then Return (y, ADD op0 op1)
+                                else Return (y, ADD op0 expression)
+fune1 (Symbol MINUS : a) op0  = do
+                               (x, op1)        <- funt a
+                               (y, expression) <- fune1 x op1
+                              if expression == ETY
+                                then Return (y, SUB op0 op1)
+                                else Return (y, SUB op0 expression)
+fune1 x _                   = Return (x, ETY)
 
 -- T::= F T1
-funt:: [Token] -> Exc [Token]
+funt:: [Token] -> Exc ([Token], LKC)
 funt a = do
-           x<-funf a
-           funt1 x
+           (x, operand)     <- funf a
+           (y, expression)  <- funt1 x operand
+           if expression  == ETY
+            then Return (y, operand)
+            else Return (y, expression)
 
 -- T1::= OPM F T1 | epsilon
+-- moltiplicazione, divisione
 -- NOTA: contiene OPM::= * | /
-funt1:: [Token] -> Exc ([Token], LKC)
-funt1 (Symbol TIMES : b)    = do
-                              y<-funf b
-                              x<-funt1 y
-funt1 (Symbol DIVISION : b) = do
-                              x<-funf b
-                              funt1 x
-funt1 x                     = Return x
+-- attributi ereditati per definire i nuovi parametri della funzione
+funt1:: [Token] -> LKC -> Exc ([Token], LKC)
+funt1 (Symbol TIMES : a) op0    = do
+                                    (x, op1)        <- funf a
+                                    (y, expression) <- funt1 x op1
+                                    if expression == ETY
+                                      then Return (y, MULT op0 op1)
+                                      else Return (y, MULT op0 expression)
+funt1 (Symbol DIVISION : a) op0 = do
+                                    (x, op1)        <- funf a
+                                    (y, expression) <- funt1 x op1
+                                    if expression == ETY
+                                      then Return (y, DIV op0 op1)
+                                      else Return (y, DIV op0 expression)
+funt1 x _                       = Return (x, ETY) 
 
 -- F::= var Y | exp_const | (ExpA)
+-- variabili, espressioni e costanti
 funf:: [Token] -> Exc ([Token], LKC)
 funf (Id a : b)              = do
                                (x, val) <- funy b (VAR a) -- l'identificatore 
