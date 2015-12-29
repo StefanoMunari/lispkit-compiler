@@ -39,3 +39,4 @@ cabal.sandbox.config
 *.mtc1
 *.out
 *.synctex.gz
+.checklist
