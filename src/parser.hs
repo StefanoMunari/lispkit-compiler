@@ -290,12 +290,12 @@ fune1 (Symbol PLUS : a) op0  = do
                                 then Return (y, ADD op0 op1)
                                 else Return (y, ADD op0 expression)
 fune1 (Symbol MINUS : a) op0  = do
-                               (x, op1)        <- funt a
-                               (y, expression) <- fune1 x op1
-                              if expression == ETY
-                                then Return (y, SUB op0 op1)
-                                else Return (y, SUB op0 expression)
-fune1 x _                   = Return (x, ETY)
+                                (x, op1)        <- funt a
+                                (y, expression) <- fune1 x op1
+                               if expression == ETY
+                                 then Return (y, SUB op0 op1)
+                                 else Return (y, SUB op0 expression)
+fune1 x _                     = Return (x, ETY)
 
 -- T::= F T1
 funt:: [Token] -> Exc ([Token], LKC)
