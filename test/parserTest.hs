@@ -9,7 +9,9 @@ tpt6,
 tpt7,
 tpt8,
 tpt9,
-tpt10
+tpt10,
+tpt11,
+tpt12
 ) 
 where
 
@@ -30,7 +32,7 @@ tpt1 = "let x=5 in x end $";
 tpt2 = "letrec x=5 in x end $";
 
 -- TPT3 : F
--- rec_in -> OK ma Raise fatto da funx
+-- rec_in -> OK ma Raise in funx
 tpt3 = "let x=5 x end $";
 
 -- TPT4 : F
@@ -58,5 +60,13 @@ tpt8 = "let x= lambda y) y in x(3) end $";
 tpt9 = "let x= lambda (y) y in x(3) end $";
 
 -- TPT10 : F
--- rec_rp -> OK ma Raise fatto da seq_var
+-- rec_rp -> OK ma Raise in seq_var
 tpt10 = "let x= lambda (y y in x(3) end $";
+
+-- TPT10 : F
+-- rec_virg -> OK ma Raise in sep_exp
+tpt11 = "let x= lambda (a b c) a+b+c in x(1 2 3) end $";
+
+-- TPT11 : T
+-- rec_virg
+tpt12 = "let x= lambda (a b c) a+b+c in x(1, 2, 3) end $";
