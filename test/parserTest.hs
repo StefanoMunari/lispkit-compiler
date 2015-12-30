@@ -6,7 +6,9 @@ tpt3,
 tpt4,
 tpt5,
 tpt6,
-tpt7
+tpt7,
+tpt8,
+tpt9
 ) 
 where
 
@@ -45,3 +47,12 @@ tpt6 = "let x= if true then false else true in x end $";
 -- TPT7 : F
 -- rec_else
 tpt7 = "let x= if true then false true in x end $";
+
+-- TPT8 : F
+-- rec_lp
+tpt8 = "let x= lambda y) y in x(3) end $";
+
+-- TPT9 : T
+-- rec_lp, rec_rp
+tpt9 = "let x= lambda (y) y in x(3) end $";
+
