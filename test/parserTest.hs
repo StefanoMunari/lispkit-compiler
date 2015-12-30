@@ -13,7 +13,8 @@ tpt10,
 tpt11,
 tpt12,
 tpt13,
-tpt14
+tpt14,
+tpt15
 ) 
 where
 
@@ -26,7 +27,7 @@ where
 tpt0 = "x=5 in x end $";
 
 -- TPT1 : T
--- rec_key, rec_in, rec_end
+-- rec_key, rec_in, rec_end, rec_dollar
 tpt1 = "let x=5 in x end $";
 
 -- TPT2 : T
@@ -85,3 +86,7 @@ tpt14 = "let x = lambda (a) "++
                     "end "++
         "in x(2) "++
         "end $";
+
+-- TPT15 : F
+-- rec_dollar -> OK ma error in lexi
+tpt15 = "let x=5 in x end ";
