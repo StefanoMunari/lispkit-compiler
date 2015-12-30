@@ -40,3 +40,5 @@ cabal.sandbox.config
 *.out
 *.synctex.gz
 .checklist
+update.sh
+copy.sh
