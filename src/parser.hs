@@ -1,14 +1,14 @@
 -- ANALIZZATORE SINTATTICO - PARTE2 [parser predittivo]
 -- @see syntax-2-document.pdf => Il linguaggio LKC
--- @description 
+-- @description
 {-
-  costruisce l'albero di derivazione 
-  traducendolo il programma nel 
-  linguaggio LKC utilizzando 
+  costruisce l'albero di derivazione
+  traducendolo il programma nel
+  linguaggio LKC utilizzando
   la tecnica degli attributi semantici:
-    ereditati: 
+    ereditati:
               per espressioni aritmetiche;
-    sintetizzati: 
+    sintetizzati:
               per tutti gli altri casi.
 -}
 module Parser (
@@ -23,29 +23,29 @@ import Prelude hiding (EQ, exp)
 ------------------------------------------------------------------------
 -- Tipo LKC (Lispkit Concreto)
 
-data LKC 
+data LKC
     = ETY     --segnala epsilon productions
-    | VAR     String 
-    | NUM     Integer 
-    | STRI    String 
-    | BOO     Bool 
-    | NIL 
-    | ADD     LKC LKC 
-    | SUB     LKC LKC 
-    | MULT    LKC LKC 
+    | VAR     String
+    | NUM     Integer
+    | STRI    String
+    | BOO     Bool
+    | NIL
+    | ADD     LKC LKC
+    | SUB     LKC LKC
+    | MULT    LKC LKC
     | REM     LKC LKC
-    | DIV     LKC LKC 
+    | DIV     LKC LKC
     | EQC     LKC LKC
     | LEQC    LKC LKC
-    | CARC    LKC 
-    | CDRC    LKC 
-    | CONSC   LKC LKC 
-    | ATOMC   LKC 
-    | IFC     LKC LKC LKC 
-    | LAMBDAC [LKC] LKC 
+    | CARC    LKC
+    | CDRC    LKC
+    | CONSC   LKC LKC
+    | ATOMC   LKC
+    | IFC     LKC LKC LKC
+    | LAMBDAC [LKC] LKC
     | CALL    LKC [LKC]       -- CALL funzione_da_invocare [parametri_attuali]
-    | LETC    LKC [(LKC,LKC)] 
-    | LETRECC LKC [(LKC, LKC)] 
+    | LETC    LKC [(LKC,LKC)]
+    | LETRECC LKC [(LKC, LKC)]
     deriving(Show, Eq)
 
 ------------------------------------------------------------------------
@@ -191,27 +191,27 @@ prog a = do
          k            <- rec_end z
          let aux (Keyword LET : _)          = Return (k, LETC body binders)
              aux (Keyword LETREC : _)       = Return (k, LETRECC body binders)
-             aux start                      = Raise  ("trovato " ++ show(start) 
+             aux start                      = Raise  ("trovato " ++ show(start)
                                                 ++ ", atteso let o letrec")
           in
              aux a
 
 -- Bind::= var = Exp X
 {-
-  z -> 
+  z ->
       lista di Token ancora da parsare
-  (VAR a, expr) : binders ->  
-                            ogni binder è rappresentato da una coppia 
+  (VAR a, expr) : binders ->
+                            ogni binder è rappresentato da una coppia
                             (identificatore, espressione_associata)
-                            a questo seguirà una lista 
+                            a questo seguirà una lista
                             di n binders t.c. 0 <= n < N
                             perchè bind è mutuamente ricorsiva con funx
-  otherwise -> 
+  otherwise ->
               qualsiasi altro elemento solleva un'eccezione
 -}
 bind:: [Token] -> Exc ([Token], [(LKC,LKC)])
 bind (Id a : b)            =  do
-                              x            <- rec_equals b -- scarto il token "=" perchè non serve 
+                              x            <- rec_equals b -- scarto il token "=" perchè non serve
                               (y, expr)    <- exp x        -- nell'albero di derivazione che sto costruendo
                               (z, binders) <- funx y
                               Return (z, (VAR a, expr) : binders)
@@ -219,13 +219,13 @@ bind (a : _)               =  Raise ("BINDER CON "++ show(a) ++" A SINISTRA")
 
 -- X::= and Bind | epsilon
 {-
-  AND -> 
+  AND ->
         genera un altro binder passando il successore b
   IN ->
         ritorna la lista dei prossimi token da analizzare
         e una lista vuota in quanto non ha nessun valore
         LKC da inserire
-  otherwise -> 
+  otherwise ->
               qualsiasi altro elemento solleva un'eccezione
   Nota:
     il tipo [(LKC,LKC)] è conforme al tipo della funzione bind
@@ -255,7 +255,7 @@ exp (Keyword LAMBDA : b)   = do
                                 (z, body)         <- exp y
                                 Return (z, LAMBDAC form_params body)
 exp (Operator CONS : b)    = do
-                                w <- rec_lp b
+                                w           <- rec_lp b
                                 (x, car)    <- exp w
                                 y           <- rec_virg x
                                 (z, cdr)    <- exp y
@@ -349,13 +349,13 @@ funt1 (Symbol DIVISION : a) op0 = do
                                     if expression == ETY
                                       then Return (y, DIV op0 op1)
                                       else Return (y, DIV op0 expression)
-funt1 x _                       = Return (x, ETY) 
+funt1 x _                       = Return (x, ETY)
 
 -- F::= var Y | exp_const | (ExpA)
 -- variabili, espressioni e costanti
 funf:: [Token] -> Exc ([Token], LKC)
 funf (Id a : b)              = do
-                               (x, val) <- funy b (VAR a) -- l'identificatore 
+                               (x, val) <- funy b (VAR a) -- l'identificatore
                                Return (x, val)            -- è un VAR in LKC
 funf (Symbol LPAREN : b)     = do
                                 (y, val)  <- expa b
@@ -379,15 +379,15 @@ funy x var                       =  Return (x, var)
 -- deve ritornare un tipo compatibile con
 -- il secondo parametro del costruttore CALL
 -- quindi [LKC], vedi funy
-seq_exp:: [Token] -> Exc ([Token], [LKC]) 
+seq_exp:: [Token] -> Exc ([Token], [LKC])
 seq_exp a@(Symbol RPAREN : _)  = Return (a, []) -- [] per compatibilità con CALL
 seq_exp a                      = do
                                   (x, val)  <- exp a
                                   (y, exps) <- sep_exp x
-                                  Return (y, val : exps ) 
+                                  Return (y, val : exps )
                                   -- attacca una espressione LKC
                                   -- in testa ad una lista di espressioni LKC
-                                  -- calcolata in sep_exp 
+                                  -- calcolata in sep_exp
 
 -- Seq_Var ::= var Seq_var | epsilon
 -- parsing di una sequenza di variabili
