@@ -17,7 +17,7 @@ module Parser (
 
 import Lexer
 import LexerTest
--- import ParserTest
+import ParserTest
 import Prelude hiding (EQ, exp)
 
 ------------------------------------------------------------------------
@@ -192,7 +192,7 @@ prog a = do
          let aux (Keyword LET : _)          = Return (k, LETC body binders)
              aux (Keyword LETREC : _)       = Return (k, LETRECC body binders)
              aux start                      = Raise  ("trovato " ++ show(start) 
-                                                ++ ", atteso let oppure letrec")
+                                                ++ ", atteso let o letrec")
           in
              aux a
 
@@ -241,7 +241,7 @@ funx a@(Keyword IN : _)    = Return (a, []) -- binders terminati
                                             -- viene riconosciuta in
                                             -- prog subito dopo i binder
                                             -- attraverso rec_in
-funx (a : _)               = Raise ("DOPO BINDERS; TROVATO"++show(a))
+funx (a : _)               = Raise ("DOPO BINDERS; TROVATO "++show(a))
 
 -- Exp ::= Prog | lambda(Seq_Var) Exp | ExpA | OPP(Seq_Exp) |
 --         if Exp then Exp else Exp
