@@ -6,18 +6,19 @@
   traducendolo il programma nel 
   linguaggio LKC utilizzando 
   la tecnica degli attributi semantici:
-    ereditati: nel caso di espressioni aritmetiche;
-    sintetizzati: per tutti gli altri casi.
+    ereditati: 
+              per espressioni aritmetiche;
+    sintetizzati: 
+              per tutti gli altri casi.
 -}
-module Syntax (
-  progdoll
+module Parser (
+  parse
 ) where
 
 import Lexer
 import LexerTest
-import SyntaxTest
 -- import ParserTest
-import Prelude hiding (EQ,exp)
+import Prelude hiding (EQ, exp)
 
 ------------------------------------------------------------------------
 -- Tipo LKC (Lispkit Concreto)
@@ -161,6 +162,22 @@ rec_equals:: [Token] -> Exc [Token]
 rec_equals (Symbol EQUALS : b)= Return b
 rec_equals (a : _)            = Raise ("trovato " ++ show(a) ++ ", atteso =")
 
+-- riconosce : $
+{-
+  utilizzato da "parse" per verificare
+  che il successore di "END" sia "DOLLAR"
+-}
+rec_dollar:: Exc ([Token], LKC) -> LKC
+rec_dollar (Return ([Symbol  DOLLAR], abstract_tree)) = abstract_tree
+rec_dollar (Return (_, _))                            = error "$ non trovato dopo END"
+rec_dollar (Raise  exception)                         = error $ show(exception)
+
+------------------------------------------------------------------------
+-- Parsing della lista di token generando l'albero astratto per LKC
+-- @see Lexer.hs
+parse:: [Token] -> LKC
+parse token_list = rec_dollar ( prog token_list )
+
 ------------------------------------------------------------------------
 -- Parsing di simboli non terminali
 
@@ -172,10 +189,10 @@ prog a = do
          y            <- rec_in x
          (z, body)    <- exp y
          k            <- rec_end z
-         let aux (Keyword LET start)    = Return (k, LETC body binders)
-             aux (Keyword LETREC start) = Return (k, LETRECC body binders)
-             aux _                      = Raise  ("trovato " ++ show(start) ++ 
-                                                  ", atteso let oppure letrec")
+         let aux (Keyword LET : _)          = Return (k, LETC body binders)
+             aux (Keyword LETREC : _)       = Return (k, LETRECC body binders)
+             aux start                      = Raise  ("trovato " ++ show(start) 
+                                                ++ ", atteso let oppure letrec")
           in
              aux a
 
@@ -295,15 +312,15 @@ fune1:: [Token] -> LKC -> Exc ([Token], LKC)
 fune1 (Symbol PLUS : a) op0  = do
                                (x, op1)         <- funt a
                                (y, expression)  <- fune1 x op1
-                              if expression == ETY
-                                then Return (y, ADD op0 op1)
-                                else Return (y, ADD op0 expression)
+                               if expression == ETY
+                               then Return (y, ADD op0 op1)
+                               else Return (y, ADD op0 expression)
 fune1 (Symbol MINUS : a) op0  = do
                                 (x, op1)        <- funt a
                                 (y, expression) <- fune1 x op1
-                               if expression == ETY
-                                 then Return (y, SUB op0 op1)
-                                 else Return (y, SUB op0 expression)
+                                if expression == ETY
+                                then Return (y, SUB op0 op1)
+                                else Return (y, SUB op0 expression)
 fune1 x _                     = Return (x, ETY)
 
 -- T::= F T1
@@ -353,8 +370,8 @@ funf (a : _)                 = Raise  ("ERRORE in funf, TROVATO"++ show(a))
 -- Y :: = (Seq_Exp) | epsilon
 funy:: [Token] -> LKC -> Exc ([Token], LKC)
 funy (Symbol LPAREN : b) var     =  do -- parsing di una chiamata a funzione
-                                     (x, act_params) <- seq_exp b
-                                      y              <- rec_rp x
+                                    (x, act_params) <- seq_exp b
+                                    y               <- rec_rp x
                                     Return (y, CALL var act_params)
 funy x var                       =  Return (x, var)
 
