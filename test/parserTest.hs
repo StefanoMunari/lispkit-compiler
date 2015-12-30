@@ -8,7 +8,8 @@ tpt5,
 tpt6,
 tpt7,
 tpt8,
-tpt9
+tpt9,
+tpt10
 ) 
 where
 
@@ -56,3 +57,6 @@ tpt8 = "let x= lambda y) y in x(3) end $";
 -- rec_lp, rec_rp
 tpt9 = "let x= lambda (y) y in x(3) end $";
 
+-- TPT10 : F
+-- rec_rp -> OK ma Raise fatto da seq_var
+tpt10 = "let x= lambda (y y in x(3) end $";
