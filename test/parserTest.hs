@@ -14,7 +14,9 @@ tpt11,
 tpt12,
 tpt13,
 tpt14,
-tpt15
+tpt15,
+tpnt0,
+tpnt1
 ) 
 where
 
@@ -90,3 +92,13 @@ tpt14 = "let x = lambda (a) "++
 -- TPT15 : F
 -- rec_dollar -> OK ma error in lexi
 tpt15 = "let x=5 in x end ";
+
+-- Test sui parser di simboli NON terminali : TPNT
+
+-- TPNT0 : F
+-- bind
+tpnt0 = "let let x=5 in x end $";
+
+-- TPNT1 : T
+-- bind
+tpnt1 = "let x=5 in x end $";
