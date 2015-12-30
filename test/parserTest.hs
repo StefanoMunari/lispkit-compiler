@@ -18,8 +18,10 @@ tpt15,
 tpnt0,
 tpnt1,
 tpnt2,
-tpnt3
-) 
+tpnt3,
+tpnt4,
+tpnt5
+)
 where
 
 --tpx= "let x=5 and y= 6 in x + y * 2 end $";
@@ -112,3 +114,20 @@ tpnt2 = "let x=5 y=7 in x end $";
 -- TPNT3 : T
 -- funx {in, and}
 tpnt3 = "let x=5 and y=7 in x+y end $";
+
+-- TPNT4 : T
+-- exp {cons, eq, atom}
+tpnt4 = "let x= lambda (a b c) " ++
+				"eq (a, b) " ++
+    		"in " ++
+        "x ( cons(0, cons(1, nil)), cons(0, cons(1, nil)), atom(3) ) " ++
+    		"end $";
+
+-- @tofix : *** Exception: "ERRORE in funf, TROVATO Operator CONS"
+-- TPNT5 : T
+-- exp {car, cdr, leq}
+tpnt5 = "let x= lambda (a b) " ++
+				"leq (a, b) " ++
+    		"in " ++
+        "x ( car( cons(1, nil) ), cdr( cons(1, nil) ) ) " ++
+    		"end $";
