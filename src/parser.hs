@@ -365,7 +365,7 @@ funf (Number a : b)          = Return (b, NUM a)
 funf (Nil : b)               = Return (b, NIL)
 funf (Bool a : b)            = Return (b, BOO a)
 funf (String a : b)          = Return (b, STRI a)
-funf (a : _)                 = Raise  ("ERRORE in funf, TROVATO"++ show(a))
+funf (a : _)                 = Raise  ("ERRORE in funf, TROVATO "++ show(a))
 
 -- Y :: = (Seq_Exp) | epsilon
 funy:: [Token] -> LKC -> Exc ([Token], LKC)
