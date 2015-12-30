@@ -167,11 +167,17 @@ rec_equals (a : _)            = Raise ("trovato " ++ show(a) ++ ", atteso =")
 -- Prog::= let Bind in Exp end | letrec Bind in Exp end
 prog:: [Token] -> Exc ([Token], LKC)
 prog a = do
-         x<-rec_key a
-         y<-bind x
-         z<-rec_in y
-         w<-exp z   -- @doing
-         rec_end w
+         w            <- rec_key a
+         (x, binders) <- bind w
+         y            <- rec_in x
+         (z, body)    <- exp y
+         k            <- rec_end z
+         let aux (Keyword LET start)    = Return (k, LETC body binders)
+             aux (Keyword LETREC start) = Return (k, LETRECC body binders)
+             aux _                      = Raise  ("trovato " ++ show(start) ++ 
+                                                  ", atteso let oppure letrec")
+          in
+             aux a
 
 -- Bind::= var = Exp X
 {-
@@ -275,8 +281,11 @@ exp x                       =  expa x
 -- espressioni aritmetiche
 expa:: [Token] -> Exc ([Token], LKC)
 expa a = do
-           x<- funt a
-           fune1 x
+           (x, operand)    <- funt a
+           (y, expression) <- fune1 x operand
+           if expression == ETY
+            then Return (y, operand)
+            else Return (y, expression)
 
 -- E1::= OPA T E1 | epsilon
 -- somma, sottrazione
