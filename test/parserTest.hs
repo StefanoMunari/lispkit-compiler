@@ -16,7 +16,9 @@ tpt13,
 tpt14,
 tpt15,
 tpnt0,
-tpnt1
+tpnt1,
+tpnt2,
+tpnt3
 ) 
 where
 
@@ -102,3 +104,11 @@ tpnt0 = "let let x=5 in x end $";
 -- TPNT1 : T
 -- bind
 tpnt1 = "let x=5 in x end $";
+
+-- TPNT2 : F
+-- funx
+tpnt2 = "let x=5 y=7 in x end $";
+
+-- TPNT3 : T
+-- funx {in, and}
+tpnt3 = "let x=5 and y=7 in x+y end $";
