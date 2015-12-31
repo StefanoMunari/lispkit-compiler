@@ -24,7 +24,10 @@ tpnt4,
 tpnt5,
 tpnt6,
 tpnt7,
-tpnt8
+tpnt8,
+tpnt9,
+tpnt10,
+tpnt11
 )
 where
 
@@ -165,4 +168,25 @@ tpnt8 = "let x = lambda (a b) " ++
                     "if leq(a,b) then 1 else 0 " ++
         "in " ++
             "x (1, 2) " ++
+        "end $";
+
+-- TPNT9 : F
+-- expa
+tpnt9 = "let x = 2 +  " ++
+        "in " ++
+            "x " ++
+        "end $";
+
+-- TPNT10 : T
+-- expa
+tpnt10 = "let x = 2 + 3 " ++
+        "in " ++
+            "x " ++
+        "end $";
+
+-- TPNT11 : T
+-- expa
+tpnt11 = "let x = lambda (a b) a + b " ++
+        "in " ++
+            "x ( 2+(~2), 4) " ++
         "end $";
