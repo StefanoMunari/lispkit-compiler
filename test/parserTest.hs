@@ -27,7 +27,11 @@ tpnt7,
 tpnt8,
 tpnt9,
 tpnt10,
-tpnt11
+tpnt11,
+tpnt12,
+tpnt13,
+tpnt14,
+tpnt15
 )
 where
 
@@ -189,4 +193,32 @@ tpnt10 = "let x = 2 + 3 " ++
 tpnt11 = "let x = lambda (a b) a + b " ++
         "in " ++
             "x ( 2+(~2), 4) " ++
+        "end $";
+
+-- TPNT12 : T
+-- funt, funt1
+tpnt12 = "let x = lambda (a b c) (a * b) / c " ++
+        "in " ++
+            "x ( 2*2, 4/2 , 3) " ++
+        "end $";
+
+-- TPNT13 : F
+-- funt, funt1
+tpnt13 = "let x = lambda (a b c) (a b) / c " ++
+        "in " ++
+            "x ( 2*2, 4/2 , 3) " ++
+        "end $";
+
+-- TPNT14 : F
+-- funt, funf
+tpnt14 = "let x = lambda (a b c) (a * ) / c " ++
+        "in " ++
+            "x ( 2*2, 4/2 , 3) " ++
+        "end $";
+
+-- TPNT15 : T
+-- funt, funf
+tpnt15 = "let x = lambda (a b c d) cons(a, b) " ++
+        "in " ++
+            "x ( (22), nil , true, \"fish\") " ++
         "end $";
