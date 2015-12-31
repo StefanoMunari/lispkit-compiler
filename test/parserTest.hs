@@ -1,4 +1,4 @@
--- @tofix: tpnt6, tpnt7, tpnt18
+-- @tofix: tpnt7, tpnt18
 module ParserTest (
 tpt0,
 tpt1,
@@ -147,15 +147,11 @@ tpnt5 = "let x= lambda (a) " ++
         "end $";
 
 -- TPNT6 : F 
--- exp {car}
--- Result :
--- *** Exception: "ERRORE in funf, TROVATO Operator CONS"
--- FIX: modificare in modo da permettere a CAR e CDR di accettare cons() non
--- ancora tradotti in LKC
+-- exp {car, cdr}
 tpnt6 = "let x= lambda (a) " ++
                     "a " ++
         "in " ++
-            "x ( car(cons(1, nil)) ) " ++
+            "x ( car(cons(1, nil)), cdr(cons(1, nil)) ) " ++
         "end $";
 
 -- TPNT7 : F 

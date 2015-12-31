@@ -17,6 +17,7 @@ module Parser (
 
 import Lexer
 import LexerTest
+import SyntaxTest
 import ParserTest
 import Prelude hiding (EQ, exp)
 
@@ -276,11 +277,15 @@ exp (Operator EQ : b)      = do
                                 k        <- rec_rp z
                                 Return (k, EQC op0 op1)
 exp (Operator CAR : b)      = do
-                                (w, list) <- exp b
-                                Return (w, CARC list)
+                                w         <- rec_lp b
+                                (x, list) <- exp w
+                                y         <- rec_rp x
+                                Return (y, CARC list)
 exp (Operator CDR : b)      = do
-                                (w, list) <- exp b
-                                Return (w, CDRC list)
+                                w         <- rec_lp b
+                                (x, list) <- exp w
+                                y         <- rec_rp x
+                                Return (y, CDRC list)
 exp (Operator ATOM : b)     = do
                                 (w, constant) <- exp b
                                 Return (w, ATOMC constant)
