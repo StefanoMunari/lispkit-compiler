@@ -1,3 +1,4 @@
+-- @tofix: tpnt6, tpnt7
 module ParserTest (
 tpt0,
 tpt1,
@@ -20,7 +21,10 @@ tpnt1,
 tpnt2,
 tpnt3,
 tpnt4,
-tpnt5
+tpnt5,
+tpnt6,
+tpnt7,
+tpnt8
 )
 where
 
@@ -118,16 +122,47 @@ tpnt3 = "let x=5 and y=7 in x+y end $";
 -- TPNT4 : T
 -- exp {cons, eq, atom}
 tpnt4 = "let x= lambda (a b c) " ++
-				"eq (a, b) " ++
-    		"in " ++
+                "eq (a, b) " ++
+            "in " ++
         "x ( cons(0, cons(1, nil)), cons(0, cons(1, nil)), atom(3) ) " ++
-    		"end $";
+            "end $";
 
--- @tofix : *** Exception: "ERRORE in funf, TROVATO Operator CONS"
 -- TPNT5 : T
--- exp {car, cdr, leq}
-tpnt5 = "let x= lambda (a b) " ++
-				"leq (a, b) " ++
-    		"in " ++
-        "x ( car( cons(1, nil) ), cdr( cons(1, nil) ) ) " ++
-    		"end $";
+-- exp {car}
+tpnt5 = "let x= lambda (a) " ++
+                    "car(a) " ++
+        "in " ++
+            "x ( cons(1, nil) ) " ++
+        "end $";
+
+-- TPNT6 : F 
+-- exp {car}
+-- Result :
+-- *** Exception: "ERRORE in funf, TROVATO Operator CONS"
+-- FIX: modificare in modo da permettere a CAR e CDR di accettare cons() non
+-- ancora tradotti in LKC
+tpnt6 = "let x= lambda (a) " ++
+                    "a " ++
+        "in " ++
+            "x ( car(cons(1, nil)) ) " ++
+        "end $";
+
+-- TPNT7 : F 
+-- exp {car}
+-- Result :
+-- LETC (CALL (VAR "x") [CARC (NUM 1)]) [(VAR "x",LAMBDAC [VAR "a"] (VAR "a"))]
+-- FIX: dovrebbe accettare SOLO LISTE e generare un errore se passo un NUM
+-- correggere per CAR e CDR
+tpnt7 = "let x= lambda (a b) " ++
+                    "a " ++
+        "in " ++
+            "x ( car(1), cdr(2) )" ++
+        "end $";
+
+-- TPNT8 : T
+-- exp {leq, if}
+tpnt8 = "let x = lambda (a b) " ++
+                    "if leq(a,b) then 1 else 0 " ++
+        "in " ++
+            "x (1, 2) " ++
+        "end $";
