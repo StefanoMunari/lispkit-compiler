@@ -34,7 +34,8 @@ tpnt14,
 tpnt15,
 tpnt16,
 tpnt17,
-tpnt18
+tpnt18,
+tpnt19
 )
 where
 
@@ -220,7 +221,7 @@ tpnt14 = "let x = lambda (a b c) (a * ) / c " ++
         "end $";
 
 -- TPNT15 : T
--- funt, funf, funy, seq_exp
+-- funt, funf, funy, seq_exp, sep_expr
 tpnt15 = "let x = lambda (a b c d) cons(a, b) " ++
         "in " ++
             "x ( (22), nil , true, \"fish\") " ++
@@ -248,4 +249,11 @@ tpnt17 = "let x = lambda (a b) cons(a, b) " ++
 tpnt18 = "let x = lambda (a b) cons(a, b) " ++
         "in " ++
             "x () " ++
+        "end $";
+
+-- TPNT19 : F
+-- sep_expr
+tpnt19 = "let x = lambda (a b) cons(a, b) " ++
+        "in " ++
+            "x ( \"blow\" \"fish\") " ++
         "end $";
