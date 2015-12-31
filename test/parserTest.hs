@@ -31,7 +31,9 @@ tpnt11,
 tpnt12,
 tpnt13,
 tpnt14,
-tpnt15
+tpnt15,
+tpnt16,
+tpnt17
 )
 where
 
@@ -221,4 +223,18 @@ tpnt14 = "let x = lambda (a b c) (a * ) / c " ++
 tpnt15 = "let x = lambda (a b c d) cons(a, b) " ++
         "in " ++
             "x ( (22), nil , true, \"fish\") " ++
+        "end $";
+
+-- TPNT16 : F
+-- seq_var
+tpnt16 = "let x = lambda (a , ) cons(a, b) " ++
+        "in " ++
+            "x ( \"blow\", \"fish\") " ++
+        "end $";
+
+-- TPNT17 : T
+-- seq_var
+tpnt17 = "let x = lambda (a b) cons(a, b) " ++
+        "in " ++
+            "x ( \"blow\", \"fish\") " ++
         "end $";
