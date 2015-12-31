@@ -171,14 +171,14 @@ tpnt8 = "let x = lambda (a b) " ++
         "end $";
 
 -- TPNT9 : F
--- expa
+-- expa, fune1
 tpnt9 = "let x = 2 +  " ++
         "in " ++
             "x " ++
         "end $";
 
 -- TPNT10 : T
--- expa
+-- expa, fune1
 tpnt10 = "let x = 2 + 3 " ++
         "in " ++
             "x " ++
