@@ -1,4 +1,4 @@
--- @tofix: tpnt6, tpnt7
+-- @tofix: tpnt6, tpnt7, tpnt18
 module ParserTest (
 tpt0,
 tpt1,
@@ -33,7 +33,8 @@ tpnt13,
 tpnt14,
 tpnt15,
 tpnt16,
-tpnt17
+tpnt17,
+tpnt18
 )
 where
 
@@ -237,4 +238,14 @@ tpnt16 = "let x = lambda (a , ) cons(a, b) " ++
 tpnt17 = "let x = lambda (a b) cons(a, b) " ++
         "in " ++
             "x ( \"blow\", \"fish\") " ++
+        "end $";
+
+-- TPNT18 : F
+-- Result:
+-- LETC (CALL (VAR "x") []) [(VAR "x",LAMBDAC [VAR "a",VAR "b"] (CONSC (VAR "a") (VAR "b")))]
+-- FIX: aggiungere un controllo che sollevi un'eccezione nel caso di mismatch
+-- sull'arietà dei parametri formali / attuali
+tpnt18 = "let x = lambda (a b) cons(a, b) " ++
+        "in " ++
+            "x () " ++
         "end $";
