@@ -217,7 +217,7 @@ tpnt14 = "let x = lambda (a b c) (a * ) / c " ++
         "end $";
 
 -- TPNT15 : T
--- funt, funf
+-- funt, funf, funy, seq_exp
 tpnt15 = "let x = lambda (a b c d) cons(a, b) " ++
         "in " ++
             "x ( (22), nil , true, \"fish\") " ++
