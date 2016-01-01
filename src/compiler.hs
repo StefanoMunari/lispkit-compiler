@@ -62,20 +62,28 @@ sexpr_reverse []= []
 sexpr_reverse (a:b)= (sexpr_reverse b) ++ [a]
 
 
--- toglie espressioni da una lista di Binders
+-- rimuove espressioni da una lista di binders
 vars:: [(a, b)] -> [a]
 vars []            = []
 vars ((x, _) : r)  = x : vars r
 
--- toglie variabili da una lista di Binders
+-- rimuove variabili da una lista di binders
 exprs:: [(a, b)] -> [b]
 exprs []           = []
 exprs((_, y) : r)  = y : exprs r
 
--- compila le istruzioni [LKC] per generare
--- una lista di parametri attuali [Secdexpr]
-complist:: [LKC]-> [[LKC]] -> [Secdexpr] -> [Secdexpr]
-complist [] _ c    = Ldc NIL : c
+-- considera la lista di espressioni (primo parametro)
+-- che corrispondono ai valori relativi
+-- alle variabili compilate precedentemente (Let var = value in ... end $):
+-- ne compila ogni elemento inserendolo in testa alla lista di istruzioni 
+-- compilate, in questo modo si mantiene la corrispondenza con le variabili/identificatori
+-- precedentemente compilati.
+-- arrivata in fondo alla lista:
+--   inserisce la costante NIL in testa alle istruzioni compilate -> RA completato
+--  
+--           e         n           c      ->   c':c 
+complist:: [LKC] -> [[LKC]] -> [Secdexpr] -> [Secdexpr]
+complist [] _ c      = Ldc NIL : c
 complist (x : y) n c = complist y n (comp x n (Cons : c))
 
 -- il codice viene prodotto da dx a sx, infatti :c
@@ -96,8 +104,8 @@ complist (x : y) n c = complist y n (comp x n (Cons : c))
 -- CALL := lista di parametri attuali utilizzati per sostituire i formali e invocare la LAMBDA 
 --
 -- LAMBDA 
--- x è il corpo
--- y sono i parametri formali
+-- x := parametri formali
+-- y := body
 -- Ldf := creazione della chiusura della funzione
 --
 -- CALL
@@ -142,7 +150,7 @@ complist (x : y) n c = complist y n (comp x n (Cons : c))
 -- serve per fare tornare i conti dei R
 -- =====================================
 -- Compila un programma LKC in una sequenza di comandi SECD eseguibili dall'interprete
-comp:: LKC -> [[LKC]] -> [Secdexpr]->[Secdexpr]
+comp:: LKC -> [[LKC]] -> [Secdexpr] -> [Secdexpr]
 comp e n c =  case e of 
                         (VAR x)       -> ((Ld (location x 0 n)):c)
                         (NUM x)       -> (Ldc (NUM x)):c
@@ -165,7 +173,31 @@ comp e n c =  case e of
                                             elsep = comp z n [Join])
                                          in comp x n  ( Sel thenp elsep : c)
                         (LAMBDAC x y) -> (Ldf (comp y (x:n) [Rtn])):c
-                        (LETC x y)    ->  --DA FARE
+                        {-
+                          x := body di LETC
+                          y := [(id, value)] detti anche binders
+                          
+                          -> separo gli identificatori (vars) dai valori (exprs)
+                          -> compilo:
+                                    - valori associati alle variabili 
+                                      (non sono i parametri attuali dell'invocazione: 
+                                      quest'ultimi sono contenuti nella parte dopo "in" di "let"
+                                      identificata da x, che infatti viene compilata subito dopo gli identificatori "varl")
+                                    - ambiente statico attuale
+                                    - istruzioni SECD -> compilate:
+                                      * Ldf -> definizione di funzione (creo la chiusura):
+                                          body di LET           -> programma da compilare
+                                          identificatori        -> ambiente statico
+                                          istruzione di ritorno -> compilata e quindi verrà messa in fondo alla chiusura da compilare,
+                                                                   quando verrà eseguita la chiusura sarà l'ultima istruzione
+                                      * Ap : esegue la funzione messa sopra
+                                      * c  : ciò che è stato compilato finora    
+                        -}
+                        (LETC x y)    -> let
+                                            varl  = vars  y -- produce una lista di variabili
+                                            exprl = exprs y -- produce una lista di espressioni
+                                         in --               (comp par_att par_form:n return)    
+                                            complist exprl n (Ldf(comp x varl : n [Rtn]) : Ap : c)
 
                         (LETRECC x y) -> --DA FARE
                         (CALL x y)    -> complist y n (comp x n (Ap:c))
@@ -180,4 +212,5 @@ comp e n c =  case e of
 
 --d= "let x= 5 and y= 6 in x*3 + y * 2* x + x*y end $"
 
+-- x := programma LKC da compilare
 comp_one x = comp x [] []
