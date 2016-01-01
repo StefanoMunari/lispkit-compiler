@@ -12,6 +12,7 @@
               per tutti gli altri casi.
 -}
 module Parser (
+  LKC(..),
   parse
 ) where
 
