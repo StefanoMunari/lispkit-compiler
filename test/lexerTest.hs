@@ -1,4 +1,6 @@
 -- LEXER: ==== TEST UNITA ====
+-- @tofix: manca implementazione dell'operatore di modulo, indicato in parser.hs
+-- con REM
 module LexerTest (
 ltu0,
 ltu1,
