@@ -11,6 +11,7 @@ import SyntaxTest
 import Parser
 import ParserTest
 import Compiler
+import Debug.Trace
 
 --------------------------------------------------------------------------------
 --Datatype
@@ -35,36 +36,42 @@ data Dump = CONTR  [Secdexpr]                     -- controllo : serve per immag
 --Funzioni di utilità
 
 -- crea l'ambiente dinamico ricorsivo necessario per il trattamento 
--- della ricorsione. Serve nel caso Rap
+-- della ricorsione. Serve nel caso Rap => lazyE vl2 vl2 // passa 2 copie della stessa lista
+-- 
 -- []         => produce la lista di parametri vuota
--- altrimenti => trasforma il parametro "a" tramite lazyClo e continua ricorsivamente sugli altri parametri
+-- altrimenti => 
+--              a:b :=  vl2 := CLO [corpo della chiusura] [ambiente dinamico]
+--              c   :=  vl2 := CLO [corpo della chiusura] [ambiente dinamico]
+--              trasforma il parametro "a" tramite lazyClo e continua ricorsivamente sugli altri parametri
+--              mettendo in testa il risultato mantiene l'ordine che avevano in input
+--              gli elementi della lista
 lazyE:: [Valore] -> [Valore] -> [Valore]
 lazyE [] _      = []
 lazyE (a : b) c = lazyClo a c : lazyE b c
 
 -- creazione di una chiusura
--- c = intera lista dei parametri
+-- c := CLO [corpo della chiusura] [ambiente dinamico]
 -- CLO => ha trovato una chiusura nella lista dei parametri
---        a = body
---        b = E (ambiente dinamico)
+--        a := body
+--        b := E (ambiente dinamico) // [OGA] inizialmente, nel caso di chiusure ricorsive
 --        => produce una nuova chiusura con :
 --           1) stesso body di prima
---           2) (tutte le chiusure presenti nella lista rese ricorsive) : (ambiente dinamico)            
+--           2) (tutte le chiusure presenti nella lista rese ricorsive) : (ambiente dinamico precedente)  // l'ambiente dinamico iniziale è [OGA]           
 lazyClo:: Valore -> [Valore] -> Valore
-lazyClo (CLO a b) c   = CLO a (lazyE c c : b)
+lazyClo (CLO a b) c   = CLO a (lazyE c c : b) --lascio il nome senza valutarlo
 lazyClo (V x) _       = V x
 lazyClo (VLISTA x) _  = VLISTA x
 lazyClo x _           = error ("LazyClo trova valore incompatibile" ++ (show x))
 
-
 --funzioni per la ricerca degli R-valori dati i loro indirizzi: usate da Ld
+--eseguono concretamente il codice, infatti estrae un Valore
 
 -- ritorna l'elemento in posizione n-sima della lista data
 index:: Integer -> [a] -> a
 index 0 s   = head s
 index n s   = index (n - 1) (tail s)
 
--- ritorna l'elemento in posizione (a, b) nell'ambiente [[Valore]]
+-- ritorna l'elemento in posizione (a, b) nell'ambiente [[Valore]] cioè in "e"
 locate:: (Integer, Integer) -> [[Valore]] -> Valore
 locate (a, b) e   = index b (index a e)
 
@@ -120,13 +127,14 @@ eqV _ _           = False
 -- c := controllo  (esecuzione del codice)
 -- d := dump       (mantiene dump temporaneo di istruzioni)
 interprete:: [Valore] -> [[Valore]] -> [Secdexpr] -> [Dump] -> Valore
+--[Ldc NIL,Ldc (NUM 5),Cons,Ldf [Ld (0,0),Rtn],Ap,Stop]
 interprete s e c d = case (head c) of 
                                       Ld(b, n) -> let 
-                                                      x = (locate (b,n) e)  
-                                                  in 
+                                                    x = (locate (b,n) e)  
+                                                  in
                                                     interprete (x:s) e (tail c) d
                                       (Ldc k) -> case k of 
-                                                          NIL -> interprete ((VLISTA []):s) e (tail c) d
+                                                          NIL -> interprete ((VLISTA []):s) e (tail c) d --NIL indica l'inizio di una lista di parte dx binders
                                                           _   -> interprete ((V k):s) e (tail c) d
                                       Add -> let 
                                                  operand1 = extract_int (head s)
@@ -164,12 +172,12 @@ interprete s e c d = case (head c) of
                                               _          -> error "manca un argomento in Eq"
                                       Car -> interprete ((vhd(head s) ):(tail s)) e (tail c) d
                                       Cdr -> interprete ((vtl(head s) ):(tail s)) e (tail c) d
-                                      Cons -> case head (tail s) of 
+                                      Cons -> case head (tail s) of --ATTENZIONE: analizzo "s" e NON "c"
                                                   (VLISTA x)   -> interprete  (VLISTA ((head s):x):(tail (tail s))) e (tail c) d
                                                   x            -> error ("CONS: il secondo argomento non e' una lista" ++ (show  x))
                                       Atom -> interprete ((vatom (head s)):(tail s)) e (tail c) d
 
-                                      Sel sl1 sl2 -> case head s of 
+                                      Sel sl1 sl2 -> case head s of -- controlla il risultato dell'espressione nell'IF
                                                           (V (BOO True))  -> interprete (tail s) e sl1 ((CONTR (tail c)):d)
                                                           (V (BOO False)) -> interprete (tail s) e sl2 ((CONTR (tail c)):d)
                                                           _               -> error "non c'e' bool su s quando si esegue SEL"
@@ -188,9 +196,9 @@ interprete s e c d = case (head c) of
                                                   (TRIPLA s1 e1 c1) -> interprete ((head s):s1) e1 c1 (tail d)
                                                   _                 ->  error  "RTN: non trovata TRIPLA su dump"
                                       Rap -> case (head s) of -- CLO (body, E)
-                                                  (CLO c1 e1) ->  case e1 of --se è una chiusura allora l'ambiente deve iniziare con [OGA] perchè sto controllando le chiusure ricorsive
-                                                                        ([OGA]:re)   -> case (head (tail s)) of --nello stack, sotto la chiusura (CLO) appena controllata, ci deve essere la lista dei parametri attuali
-                                                                                        --invocazione => stack = vuoto, dinamico = lista_parametri_attuali:ambiente_chiusura, controllo = corpo_chiusura, dump = dump dello stato attuale della macchina
+                                                  (CLO c1 e1) ->  case e1 of --se è una chiusura allora l'ambiente deve iniziare con [OGA] perchè sto controllando le chiusure ricorsive (Rap)
+                                                                        ([OGA]:re)   -> case (head (tail s)) of --nello stack, sotto la chiusura (CLO) appena controllata, ci deve essere la lista della definizione della chiusura (parte dx di LETREC) (parte LETREC "fun= lambda.." )
+                                                                                        --invocazione => stack = lo svuoto, dinamico = lista_parametri_attuali:ambiente_chiusura, controllo = chiamata a chiusura con parametri attuali(parte "in" di LETREC), dump = dump dello stato attuale della macchina
                                                                                         (VLISTA vl2) -> interprete [] ((lazyE vl2 vl2):re) c1 ((TRIPLA (tail (tail s)) (tail e) (tail c)):d)
                                                                                         --sosituisco ad [OGA] la lista dei parametri attuali resi circolari da lazyE
                                                                                         _            -> error "manca lista dei parametri dopo OGA";
