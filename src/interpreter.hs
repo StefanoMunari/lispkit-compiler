@@ -1,17 +1,18 @@
 --INTERPRETE SECD COMPLETO in Haskell
 module Interpreter(
   Valore(..),
-  interprete
-) 
+  execute
+)
 where
 
 import Lexer
+import Parser
+import Compiler
+{-
 import LexerTest
 import SyntaxTest
-import Parser
 import ParserTest
-import Compiler
-import Debug.Trace
+-}
 
 --------------------------------------------------------------------------------
 --Datatype
@@ -35,11 +36,11 @@ data Dump = CONTR  [Secdexpr]                     -- controllo : serve per immag
 --------------------------------------------------------------------------------
 --Funzioni di utilità
 
--- crea l'ambiente dinamico ricorsivo necessario per il trattamento 
+-- crea l'ambiente dinamico ricorsivo necessario per il trattamento
 -- della ricorsione. Serve nel caso Rap => lazyE vl2 vl2 // passa 2 copie della stessa lista
--- 
+--
 -- []         => produce la lista di parametri vuota
--- altrimenti => 
+-- altrimenti =>
 --              a:b :=  vl2 := CLO [corpo della chiusura] [ambiente dinamico]
 --              c   :=  vl2 := CLO [corpo della chiusura] [ambiente dinamico]
 --              trasforma il parametro "a" tramite lazyClo e continua ricorsivamente sugli altri parametri
@@ -56,13 +57,15 @@ lazyE (a : b) c = lazyClo a c : lazyE b c
 --        b := E (ambiente dinamico) // [OGA] inizialmente, nel caso di chiusure ricorsive
 --        => produce una nuova chiusura con :
 --           1) stesso body di prima
---           2) (tutte le chiusure presenti nella lista rese ricorsive) : (ambiente dinamico precedente)  // l'ambiente dinamico iniziale è [OGA]           
+--           2) (tutte le chiusure presenti nella lista rese ricorsive) : (ambiente dinamico precedente)  // l'ambiente dinamico iniziale è [OGA]
 lazyClo:: Valore -> [Valore] -> Valore
-lazyClo (CLO a b) c   = CLO a (lazyE c c : b) --lascio il nome senza valutarlo
-lazyClo (V x) _       = V x
-lazyClo (VLISTA x) _  = VLISTA x
-lazyClo x _           = error ("LazyClo trova valore incompatibile" ++ (show x))
+lazyClo (CLO a b) c   = CLO a (lazyE c c : tail b) --lascio il nome senza valutarlo;
+lazyClo (V x) _       = V x                        -- tail b perchè elimino [OGA], altrimenti 
+lazyClo (VLISTA x) _  = VLISTA x                   -- lasciandolo invaliderei gli indirizzi delle variabili globali
+lazyClo x _           = error ("LazyClo trova valore incompatibile" ++ (show x)) -- acceduti internamente alle chiusura
 
+
+lazyClo (CLO a b) c = (CLO a ((lazyE c c):(tail b))) in modo da togliere OGA
 --funzioni per la ricerca degli R-valori dati i loro indirizzi: usate da Ld
 --eseguono concretamente il codice, infatti estrae un Valore
 
@@ -101,7 +104,7 @@ vatom _       = V (BOO False)
 bool2s_espressione:: Bool -> LKC
 bool2s_espressione b = if b then (BOO True) else (BOO False)
 
--- test di uguaglianza per il tipo Valore, 
+-- test di uguaglianza per il tipo Valore,
 -- si adatta ai tipi dei parametri con cui viene invocata
 eqValore:: Valore -> Valore -> Bool
 eqValore a@(V _) b      = eqV a b
@@ -128,46 +131,46 @@ eqV _ _           = False
 -- d := dump       (mantiene dump temporaneo di istruzioni)
 interprete:: [Valore] -> [[Valore]] -> [Secdexpr] -> [Dump] -> Valore
 --[Ldc NIL,Ldc (NUM 5),Cons,Ldf [Ld (0,0),Rtn],Ap,Stop]
-interprete s e c d = case (head c) of 
-                                      Ld(b, n) -> let 
-                                                    x = (locate (b,n) e)  
+interprete s e c d = case (head c) of
+                                      Ld(b, n) -> let
+                                                    x = (locate (b,n) e)
                                                   in
                                                     interprete (x:s) e (tail c) d
-                                      (Ldc k) -> case k of 
+                                      (Ldc k) -> case k of
                                                           NIL -> interprete ((VLISTA []):s) e (tail c) d --NIL indica l'inizio di una lista di parte dx binders
                                                           _   -> interprete ((V k):s) e (tail c) d
-                                      Add -> let 
+                                      Add -> let
                                                  operand1 = extract_int (head s)
                                                  operand2 = extract_int (head (tail s))
-                                             in  
+                                             in
                                                  interprete ((V(NUM (operand1 + operand2))) : (tail (tail s))) e (tail c)  d
 
-                                      Sub -> let 
+                                      Sub -> let
                                                  operand1 = extract_int (head s)
                                                  operand2 = extract_int (head (tail s))
-                                             in  
+                                             in
                                                  interprete ((V(NUM (operand1 - operand2))) : (tail (tail s))) e (tail c)  d
-                                      Mult -> let 
+                                      Mult -> let
                                                   operand1 = extract_int (head s)
                                                   operand2 = extract_int (head (tail s))
-                                              in  
+                                              in
                                                   interprete ((V(NUM (operand1 * operand2))):(tail (tail s))) e (tail c)  d
-                                      Div -> let 
+                                      Div -> let
                                                  operand1 = extract_int (head s)
                                                  operand2 = extract_int (head (tail s))
-                                             in  
+                                             in
                                                  interprete ((V(NUM (operand1 `div` operand2))):(tail (tail s))) e (tail c)  d
-                                      Rem -> let 
+                                      Rem -> let
                                                  operand1 = extract_int (head s)
                                                  operand2 = extract_int (head (tail s))
-                                             in  
+                                             in
                                                  interprete ((V(NUM (operand1 `mod` operand2))):(tail (tail s))) e (tail c)  d
-                                      Leq -> let 
+                                      Leq -> let
                                                  operand1 = extract_int (head s)
                                                  operand2 = extract_int (head (tail s))
-                                             in  
+                                             in
                                                  interprete ((V(bool2s_espressione (operand1 <= operand2))):(tail (tail s))) e (tail c)  d
-                                      Eq -> case s of 
+                                      Eq -> case s of
                                               (w1:w2:w3) -> interprete ((V (bool2s_espressione (eqValore w1 w2))):w3) e (tail c) d
                                               _          -> error "manca un argomento in Eq"
                                       Car -> interprete ((vhd(head s) ):(tail s)) e (tail c) d
@@ -182,7 +185,7 @@ interprete s e c d = case (head c) of
                                                           (V (BOO False)) -> interprete (tail s) e sl2 ((CONTR (tail c)):d)
                                                           _               -> error "non c'e' bool su s quando si esegue SEL"
 
-                                      Join -> case (head d) of 
+                                      Join -> case (head d) of
                                                   (CONTR c1) -> interprete s e c1 (tail d)
                                                   _          -> error "JOIN: il dump non contiene controllo"
                                       Ldf sl -> interprete ((CLO sl e):s) e (tail c) d
@@ -192,7 +195,7 @@ interprete s e c d = case (head c) of
                                                                      _           -> error "AP senza lista dei parametri"
                                                   _  -> error "AP senza chiusura su s"
 
-                                      Rtn ->  case (head d) of 
+                                      Rtn ->  case (head d) of
                                                   (TRIPLA s1 e1 c1) -> interprete ((head s):s1) e1 c1 (tail d)
                                                   _                 ->  error  "RTN: non trovata TRIPLA su dump"
                                       Rap -> case (head s) of -- CLO (body, E)
@@ -227,7 +230,7 @@ e = "let z=2 in letrec x= 2+z and y= 2*z in x*y*z end end $"
 --lista di interi e f0 distribuisce f1 sulle liste contenute in Z *)
 
 f="letrec f0 = lambda ( x ) "++
-          "letrec f1 = lambda(y) " ++ 
+          "letrec f1 = lambda(y) " ++
                  "letrec f2=lambda (z) if eq(z , 1) then 1 else z * f2( z - 1 ) " ++
                  "in if eq( y , nil ) then 0 else f2 ( car ( y ) ) + f1 ( cdr (y)) end " ++
           "in if eq(x , nil) then nil else cons (f1 ( car ( x )),f0 ( cdr ( x ) ) ) end " ++
