@@ -1,16 +1,18 @@
 -- Compilatore LKC
 -- @see compiler-document.pdf => Compilazione da LKC → a SECD
 module Compiler(
-    compile,
-    Secdexpr(..)
+    Secdexpr(..),
+    compile
 )
 where
 
 import Lexer
+import Parser
+{-
 import LexerTest
 import SyntaxTest
-import Parser
 import ParserTest
+-}
 
 data Secdexpr = Add                       -- +
               | Sub                       -- -

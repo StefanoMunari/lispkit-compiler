@@ -7,8 +7,10 @@ module Syntax (
 ) where
 
 import Lexer
+{-
 import LexerTest
 import SyntaxTest
+-}
 import Prelude hiding (EQ,exp)
 
 ------------------------------------------------------------------------
@@ -128,9 +130,9 @@ rec_equals (a : _)            = Raise ("trovato " ++ show(a) ++ ", atteso =")
 ------------------------------------------------------------------------
 -- Parsing di simboli non terminali
 
--- Funzione per testare PARTE1 [parser predittivo]: 
+-- Funzione per testare PARTE1 [parser predittivo]:
 -- data una lista di token stampa il risultato del parsing
--- Risultato corretto => RAGGIUNTO: 
+-- Risultato corretto => RAGGIUNTO:
 -- Risultato errato => ERRORE:
 -- (Prog + $)
 progdoll::[Token] -> String
@@ -180,7 +182,7 @@ funx (a : _)               = Raise ("DOPO BINDERS; TROVATO"++show(a))
                                              // l'intera definizione
                                              // dell'espressione
                                              // sia corretta e non solo la testa
-  {lambda ...} => 
+  {lambda ...} =>
                 verifica che il successore di "LAMBDA" sia "("
                 verifica che il successore di seq_var sia un'espressione
   {cons ...} =>
@@ -309,13 +311,13 @@ funt1 x                     = Return x
     {( ..} =>
             verifica che il successore sia "ExpA"
             verifica che il successore di "ExpA"
-            sia ")"                     
-    {Number || Nil || Bool || String ..} => 
+            sia ")"
+    {Number || Nil || Bool || String ..} =>
                                     successore
     {.. } => eccezione
 -}
 funf:: [Token] -> Exc [Token]
-funf (Id a : b)              = funy b 
+funf (Id a : b)              = funy b
 funf (Symbol LPAREN : b)     = do
                               x<- expa b
                               rec_rp x
