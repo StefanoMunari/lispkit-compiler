@@ -17,8 +17,7 @@ Builds the parse tree for the grammar G. It takes the string of tokens generated
 #### Grammar
 
 G is a [context-free grammar (CFG)](https://en.wikipedia.org/wiki/Context-free_grammar), 
-essentialy it describes the syntax of the language and the transitions between automata state. The chosen CFG is  
-a LL(1) grammar: it means that the input is parsed from left to right considering only one time all the string, it parses the input one symbol at time  
+essentialy it describes the syntax of the language and the transitions between automata state. The chosen CFG is a LL(1) grammar: it means that the input is parsed from left to right considering only one time all the string, it parses the input one symbol at time  
 
 ### Compiler 
 
