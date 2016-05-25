@@ -1,34 +1,15 @@
--- ANALIZZATORE SINTATTICO - PARTE2 [parser predittivo]
--- @see syntax-2-document.pdf => Il linguaggio LKC
--- @description
-{-
-  costruisce l'albero di derivazione
-  traducendolo il programma nel
-  linguaggio LKC utilizzando
-  la tecnica degli attributi semantici:
-    ereditati:
-              per espressioni aritmetiche;
-    sintetizzati:
-              per tutti gli altri casi.
--}
 module Parser (
   LKC(..),
   parse
 ) where
 
-import Lexer
-{-
-import LexerTest
-import SyntaxTest
-import ParserTest
--}
 import Prelude hiding (EQ, exp)
+import Lexer
 
-------------------------------------------------------------------------
--- Tipo LKC (Lispkit Concreto)
+-- Datatype LKC (Concrete Lispkit)
 
 data LKC
-    = ETY     --segnala epsilon productions
+    = ETY     -- epsilon production
     | VAR     String
     | NUM     Integer
     | STRI    String
@@ -37,7 +18,6 @@ data LKC
     | ADD     LKC LKC
     | SUB     LKC LKC
     | MULT    LKC LKC
-    | REM     LKC LKC
     | DIV     LKC LKC
     | EQC     LKC LKC
     | LEQC    LKC LKC
@@ -47,145 +27,101 @@ data LKC
     | ATOMC   LKC
     | IFC     LKC LKC LKC
     | LAMBDAC [LKC] LKC
-    | CALL    LKC [LKC]       -- CALL funzione_da_invocare [parametri_attuali]
+    | CALL    LKC [LKC]
     | LETC    LKC [(LKC,LKC)]
     | LETRECC LKC [(LKC, LKC)]
     deriving(Show, Eq)
 
-------------------------------------------------------------------------
--- Gestione delle eccezioni in modo dichiarativo
+-- Datatype to handle exceptions in a declarative manner
 
-data Exc a = Raise Exception | Return a
 type Exception = String
+data Exc a = Raise Exception | Return a
+
 
 instance Show a => Show (Exc a) where
- show (Raise e)= "ERRORE:" ++ e
- show (Return x) = "RAGGIUNTO:" ++ (show x)
+ show (Raise e)  = "ERROR:" ++ e
+ show (Return x) = "REACHED:" ++ (show x)
 
--- fmap :: Functor f => (a -> b) -> f a -> f b
+
 instance Functor Exc where
   fmap fun (Return x) = Return (fun x)
   fmap fun (Raise e)  = Raise e
 
--- (<*>) :: Applicative f => f (a -> b) -> f a -> f b
+
 instance Applicative Exc where
-  pure             = Return
-  (Raise e) <*> _  = Raise e
+  pure               = Return
+  (Raise e)    <*> _ = Raise e
   (Return fun) <*> q = fmap fun q
 
--- (>>=) :: Monad m => m a -> (a -> m b) -> m b
+
 instance Monad Exc where
- return            = Return
- (Raise e) >>= _   = Raise e
+ return                 = Return
+ (Raise e)  >>= _       = Raise e
  (Return x) >>= funMon  = funMon x
--- ex: (Return 3) >>= (\y->Return (3+y)) = RAGGIUNTO:6
+
 
 raise :: Exception -> Exc a
 raise e = Raise e
 
-------------------------------------------------------------------------
--- Parsing di simboli terminali
 
--- riconosce : {let letrec}
-{-
-  if (simbolo corretto)
-    then
-      viene generato il token corrispondente e viene ritornata la lista restante
-      incapsulata dentro la monade Exc
-    else
-      viene sollevata un'eccezione e termina la computazione
--}
+-- Parsing of terminal symbols
+
 rec_key:: [Token] -> Exc [Token]
 rec_key (Keyword LET : b)    = Return b
 rec_key (Keyword LETREC : b) = Return b
-rec_key (a : _)              = Raise ("trovato " ++ show(a) ++", atteso LET o LETREC")
-rec_key  x                   = Raise ("ERRORE STRANO"  ++  show(x))
+rec_key (a : _)              = Raise ("Found " ++ show(a) ++" instead of LET or LETREC")
+rec_key  x                   = Raise ("Unknown error"  ++  show(x))
 
--- riconosce : in
-{-
-  @sameas {let letrec}
--}
-rec_in:: [Token] -> Exc[Token]
+
+rec_in:: [Token] -> Exc [Token]
 rec_in (Keyword IN : b)= Return b
-rec_in (a : _)         = Raise ("trovato " ++ show(a) ++ ", atteso IN")
+rec_in (a : _)         = Raise ("Found " ++ show(a) ++ " instead of IN")
 
--- riconosce : end
-{-
-  @sameas {let letrec}
--}
+
 rec_end:: [Token] -> Exc [Token]
 rec_end (Keyword END : b)= Return b
-rec_end (a : _)          = Raise ("trovato " ++ show(a) ++ ", atteso END")
+rec_end (a : _)          = Raise ("Found " ++ show(a) ++ " instead of END")
 
--- riconosce : then
-{-
-  @sameas {let letrec}
--}
+
 rec_then:: [Token] -> Exc [Token]
 rec_then (Keyword THEN : b)= Return b
-rec_then (a : _)           = Raise ("trovato " ++ show(a) ++ ", atteso THEN")
+rec_then (a : _)           = Raise ("Found " ++ show(a) ++ " instead of THEN")
 
--- riconosce : else
-{-
-  @sameas {let letrec}
--}
+
 rec_else:: [Token] -> Exc [Token]
 rec_else (Keyword ELSE : b)= Return b
-rec_else (a : _)           = Raise ("trovato " ++ show(a) ++ ", atteso ELSE")
+rec_else (a : _)           = Raise ("Found " ++ show(a) ++ " instead of ELSE")
 
--- riconosce : (
-{-
-  @sameas {let letrec}
--}
+
 rec_lp:: [Token] -> Exc [Token]
 rec_lp (Symbol LPAREN : b)= Return b
-rec_lp (a : _)            = Raise ("trovato " ++ show(a) ++ ", atteso (")
+rec_lp (a : _)            = Raise ("Found "++ show(a) ++ " instead of (")
 
--- riconosce : )
-{-
-  @sameas {let letrec}
--}
+
 rec_rp:: [Token] -> Exc [Token]
 rec_rp (Symbol RPAREN : b)= Return b
-rec_rp (a : _)            = Raise ("trovato " ++ show(a) ++ ", attesa )")
+rec_rp (a : _)            = Raise ("Found "++ show(a) ++ " instead of )")
 
--- riconosce : ,
-{-
-  @sameas {let letrec}
--}
+
 rec_virg:: [Token] -> Exc [Token]
 rec_virg (Symbol VIRGOLA : b)= Return  b
-rec_virg (a : _)             = Raise ("trovato " ++ show(a) ++ ", attesa ,")
+rec_virg (a : _)             = Raise ("Found "++ show(a) ++ " instead of ,")
 
 
--- riconosce : =
-{-
-  @sameas {let letrec}
--}
 rec_equals:: [Token] -> Exc [Token]
 rec_equals (Symbol EQUALS : b)= Return b
-rec_equals (a : _)            = Raise ("trovato " ++ show(a) ++ ", atteso =")
+rec_equals (a : _)            = Raise ("Found "++ show(a) ++ " instead of =")
 
--- riconosce : $
-{-
-  utilizzato da "parse" per verificare
-  che il successore di "END" sia "DOLLAR"
--}
+
 rec_dollar:: Exc ([Token], LKC) -> LKC
 rec_dollar (Return ([Symbol  DOLLAR], abstract_tree)) = abstract_tree
-rec_dollar (Return (_, _))                            = error "$ non trovato dopo END"
+rec_dollar (Return (_, _))                            = error "$ not found after END"
 rec_dollar (Raise  exception)                         = error $ show(exception)
 
-------------------------------------------------------------------------
--- Parsing della lista di token generando l'albero astratto per LKC
--- @see Lexer.hs
-parse:: [Token] -> LKC
-parse token_list = rec_dollar ( prog token_list )
 
-------------------------------------------------------------------------
--- Parsing di simboli non terminali
+-- Parsing of non-terminal symbols
 
--- Prog::= let Bind in Exp end | letrec Bind in Exp end
+-- Prog ::= let Bind in Exp end | letrec Bind in Exp end
 prog:: [Token] -> Exc ([Token], LKC)
 prog a = do
          w            <- rec_key a
@@ -193,68 +129,41 @@ prog a = do
          y            <- rec_in x
          (z, body)    <- exp y
          k            <- rec_end z
-         let aux (Keyword LET : _)          = Return (k, LETC body binders)
+         let
+             aux (Keyword LET : _)          = Return (k, LETC body binders)
              aux (Keyword LETREC : _)       = Return (k, LETRECC body binders)
-             aux start                      = Raise  ("trovato " ++ show(start)
-                                                ++ ", atteso let o letrec")
+             aux start                      = Raise  ("Found "++ show(start)
+                                                ++ " instead of let o letrec")
           in
              aux a
 
--- Bind::= var = Exp X
-{-
-  z ->
-      lista di Token ancora da parsare
-  (VAR a, expr) : binders ->
-                            ogni binder è rappresentato da una coppia
-                            (identificatore, espressione_associata)
-                            a questo seguirà una lista
-                            di n binders t.c. 0 <= n < N
-                            perchè bind è mutuamente ricorsiva con funx
-  otherwise ->
-              qualsiasi altro elemento solleva un'eccezione
--}
+
+-- Bind ::= var = Exp X
 bind:: [Token] -> Exc ([Token], [(LKC,LKC)])
 bind (Id a : b)            =  do
-                              x            <- rec_equals b -- scarto il token "=" perchè non serve
-                              (y, expr)    <- exp x        -- nell'albero di derivazione che sto costruendo
+                              x            <- rec_equals b
+                              (y, expr)    <- exp x
                               (z, binders) <- funx y
                               Return (z, (VAR a, expr) : binders)
-bind (a : _)               =  Raise ("BINDER CON "++ show(a) ++" A SINISTRA")
+bind (a : _)               =  Raise ("Binder with "++ show(a) ++" on the left")
 
--- X::= and Bind | epsilon
-{-
-  AND ->
-        genera un altro binder passando il successore b
-  IN ->
-        ritorna la lista dei prossimi token da analizzare
-        e una lista vuota in quanto non ha nessun valore
-        LKC da inserire
-  otherwise ->
-              qualsiasi altro elemento solleva un'eccezione
-  Nota:
-    il tipo [(LKC,LKC)] è conforme al tipo della funzione bind
-    perchè mutuamente ricorsiva
--}
+
+-- X ::= and Bind | epsilon
 funx:: [Token] -> Exc ([Token], [(LKC,LKC)])
-funx (Keyword AND : b)     = bind b -- scarto il token "AND", non serve nell'albero
-funx a@(Keyword IN : _)    = Return (a, []) -- binders terminati
-                                            -- la keyword IN permette
-                                            -- di segnalare la fine dei
-                                            -- binders e l'inizio della parte
-                                            -- dx del {let letrec},
-                                            -- viene riconosciuta in
-                                            -- prog subito dopo i binder
-                                            -- attraverso rec_in
-funx (a : _)               = Raise ("DOPO BINDERS; TROVATO "++show(a))
+funx (Keyword AND : b)     = bind b
+funx a@(Keyword IN : _)    = Return (a, [])
+funx (a : _)               = Raise ("Found "++ show(a) ++" after binders")
+
 
 -- Exp ::= Prog | lambda(Seq_Var) Exp | ExpA | OPP(Seq_Exp) |
 --         if Exp then Exp else Exp
--- NOTA: contiene OPP::= cons | car | cdr | eq | leq | atom
+--
+-- OPP ::= cons | car | cdr | eq | leq | atom
 exp:: [Token] -> Exc ([Token], LKC)
 exp a@(Keyword LET : b)    = prog a
 exp a@(Keyword LETREC : b) = prog a
 exp (Keyword LAMBDA : b)   = do
-                                x                 <- rec_lp b -- scarto il token "(", non serve nell'albero
+                                x                 <- rec_lp b
                                 (y, form_params)  <- seq_var x
                                 (z, body)         <- exp y
                                 Return (z, LAMBDAC form_params body)
@@ -299,11 +208,10 @@ exp (Keyword IF : b)        = do
                                 z                <- rec_else y
                                 (k, alternative) <- exp z
                                 Return (k, IFC condition consequent alternative)
-exp x                       =  expa x
+exp x                       = expa x
 
 
--- ExpA::= T E1
--- espressioni aritmetiche
+-- ExpA ::= T E1
 expa:: [Token] -> Exc ([Token], LKC)
 expa a = do
            (x, operand)    <- funt a
@@ -312,10 +220,10 @@ expa a = do
             then Return (y, operand)
             else Return (y, expression)
 
--- E1::= OPA T E1 | epsilon
--- somma, sottrazione
--- NOTA: contiene OPA::= + | -
--- attributi ereditati per definire i nuovi parametri della funzione
+
+-- E1 ::= OPA T E1 | epsilon
+--
+-- OPA ::= + | -
 fune1:: [Token] -> LKC -> Exc ([Token], LKC)
 fune1 (Symbol PLUS : a) op0  = do
                                (x, op1)         <- funt a
@@ -331,7 +239,8 @@ fune1 (Symbol MINUS : a) op0  = do
                                 else Return (y, SUB op0 expression)
 fune1 x _                     = Return (x, ETY)
 
--- T::= F T1
+
+-- T ::= F T1
 funt:: [Token] -> Exc ([Token], LKC)
 funt a = do
            (x, operand)     <- funf a
@@ -340,10 +249,10 @@ funt a = do
             then Return (y, operand)
             else Return (y, expression)
 
--- T1::= OPM F T1 | epsilon
--- moltiplicazione, divisione
--- NOTA: contiene OPM::= * | /
--- attributi ereditati per definire i nuovi parametri della funzione
+
+-- T1 ::= OPM F T1 | epsilon
+--
+-- OPM ::= * | /
 funt1:: [Token] -> LKC -> Exc ([Token], LKC)
 funt1 (Symbol TIMES : a) op0    = do
                                     (x, op1)        <- funf a
@@ -359,12 +268,12 @@ funt1 (Symbol DIVISION : a) op0 = do
                                       else Return (y, DIV op0 expression)
 funt1 x _                       = Return (x, ETY)
 
--- F::= var Y | exp_const | (ExpA)
--- variabili, espressioni e costanti
+
+-- F ::= var Y | exp_const | (ExpA)
 funf:: [Token] -> Exc ([Token], LKC)
 funf (Id a : b)              = do
-                               (x, val) <- funy b (VAR a) -- l'identificatore
-                               Return (x, val)            -- è un VAR in LKC
+                               (x, val) <- funy b (VAR a)
+                               Return (x, val)
 funf (Symbol LPAREN : b)     = do
                                 (y, val)  <- expa b
                                 x         <- rec_rp y
@@ -373,41 +282,43 @@ funf (Number a : b)          = Return (b, NUM a)
 funf (Nil : b)               = Return (b, NIL)
 funf (Bool a : b)            = Return (b, BOO a)
 funf (String a : b)          = Return (b, STRI a)
-funf (a : _)                 = Raise  ("ERRORE in funf, TROVATO "++ show(a))
+funf (a : _)                 = Raise  ("Error in funf, found "++ show(a))
 
--- Y :: = (Seq_Exp) | epsilon
+
+-- Y ::= (Seq_Exp) | epsilon
 funy:: [Token] -> LKC -> Exc ([Token], LKC)
-funy (Symbol LPAREN : b) var     =  do -- parsing di una chiamata a funzione
+funy (Symbol LPAREN : b) var     =  do
                                     (x, act_params) <- seq_exp b
                                     y               <- rec_rp x
                                     Return (y, CALL var act_params)
 funy x var                       =  Return (x, var)
 
--- Seq_Exp::= Exp Sep_Exp |epsilon
--- deve ritornare un tipo compatibile con
--- il secondo parametro del costruttore CALL
--- quindi [LKC], vedi funy
+
+-- Seq_Exp ::= Exp Sep_Exp | epsilon
 seq_exp:: [Token] -> Exc ([Token], [LKC])
-seq_exp a@(Symbol RPAREN : _)  = Return (a, []) -- [] per compatibilità con CALL
+seq_exp a@(Symbol RPAREN : _)  = Return (a, [])
 seq_exp a                      = do
                                   (x, val)  <- exp a
                                   (y, exps) <- sep_exp x
                                   Return (y, val : exps )
-                                  -- attacca una espressione LKC
-                                  -- in testa ad una lista di espressioni LKC
-                                  -- calcolata in sep_exp
+
 
 -- Seq_Var ::= var Seq_var | epsilon
--- parsing di una sequenza di variabili
 seq_var:: [Token] -> Exc ([Token], [LKC])
 seq_var (Id a : b)              = do
-                                  (x, vars) <- seq_var b   -- vars è una sequenza
-                                  Return (x, VAR a : vars) -- di variabili
+                                  (x, vars) <- seq_var b
+                                  Return (x, VAR a : vars)
 seq_var (Symbol RPAREN : b)     = Return (b, [])
-seq_var (a : _)                 = Raise ("ERRORE in seq_var, TROVATO "++ show(a))
+seq_var (a : _)                 = Raise ("Error in seq_var, found "++ show(a))
+
 
 -- Sep_Exp ::=  , Exp Sep_Exp | epsilon
 sep_exp:: [Token] -> Exc ([Token], [LKC])
 sep_exp (Symbol VIRGOLA : b)   = seq_exp b
 sep_exp a@(Symbol RPAREN : b)  = Return (a, [])
-sep_exp (a : _)                = Raise ("ERRORE in sep_exp, TROVATO "++ show(a))
+sep_exp (a : _)                = Raise ("Error in sep_exp, found "++ show(a))
+
+-- Main function : predictive parser based on an LL(1) grammar
+
+parse:: [Token] -> LKC
+parse token_list = rec_dollar ( prog token_list )

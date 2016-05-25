@@ -1,5 +1,3 @@
--- ANALIZZATORE LESSICALE 
--- @see lexer-document.pdf
 module Lexer (
   Token(..),
   Symbol_T(..),
@@ -9,8 +7,10 @@ module Lexer (
 ) where
 
 import Prelude hiding (EQ)
+import LexerTest
 
--- Tipi
+
+-- Types
 
 data Keyword_T
   = LET
@@ -24,6 +24,7 @@ data Keyword_T
   | LAMBDA
   deriving (Show,Eq)
 
+
 data Operator_T
   = EQ
   | LEQ
@@ -33,6 +34,7 @@ data Operator_T
   | ATOM
   deriving (Show,Eq)
 
+
 data Symbol_T
   = LPAREN
   | RPAREN
@@ -41,9 +43,10 @@ data Symbol_T
   | MINUS
   | TIMES
   | DIVISION
-  | VIRGOLA -- simbolo utilizzato per separare i parametri attuali
+  | VIRGOLA
   | DOLLAR
   deriving (Show,Eq)
+
 
 data Token
   = Keyword Keyword_T
@@ -58,62 +61,57 @@ data Token
 
 
 
--- Funzioni di supporto
+-- Utility functions
 
--- Testa se il carattere è un carattere valido per iniziare un identificatore,
--- un operatore o una keyword
 isAlphaChar c = c `elem` (['a' .. 'z'] ++ ['A' .. 'Z'])
 
--- Riconosce se c è un carattere numerico o no
+
 isDigitChar c = c `elem` ['0' .. '9']
 
--- Testa se il carattere è un carattere valido per comporre un identificatore,
--- un operatore o una keyword (ad eccezione del primo carattere)
+
 isIdChar c = isAlphaChar c || isDigitChar c
 
--- Testa se il carattere è un separatore
+
 isSeparator c = c `elem` "()=$,"
 
--- Testa se è uno spazio o accapo
+
 isSpace c = c `elem` [' ', '\n', '\f', '\r', '\t']
 
--- Testa se è il carattere è un simbolo
-isSymbol c = c `elem` "()=+-*/,"
+
+isSymbol c = c `elem` "()=+-*/%,"
 
 
-{-
-  data una stringa X la confronta con le parole chiave e con gli operatori
-   del LispKit:
-    => se è una di queste allora restituisce la corrispondente
-   coppia token_lexema
-    ~> altrimenti la considera un identificatore e
-   restituisce la coppia (ID, STRINGA(X))
--}
 extractWord :: String -> Token
 extractWord w = case w of
+    -- simple block
     "let"     -> Keyword LET
     "in"      -> Keyword IN
     "end"     -> Keyword END
+    -- recursive block
     "letrec"  -> Keyword LETREC
+    -- separator for multiple definitions
     "and"     -> Keyword AND
+    -- lambda expression
+    "lambda"  -> Keyword LAMBDA
+    -- conditional operator
     "if"      -> Keyword IF
     "then"    -> Keyword THEN
     "else"    -> Keyword ELSE
-    "lambda"  -> Keyword LAMBDA
-
+    -- relational operators
     "eq"      -> Operator EQ
     "leq"     -> Operator LEQ
+    -- structural operators
     "car"     -> Operator CAR
     "cdr"     -> Operator CDR
     "cons"    -> Operator CONS
     "atom"    -> Operator ATOM
-
+    -- constants
     "true"    -> Bool True
     "false"   -> Bool False
-
     "nil"     -> Nil
-
+    -- variables
     otherwise -> Id w
+
 
 toSymbol :: Char -> Symbol_T
 toSymbol c = case c of
@@ -126,95 +124,54 @@ toSymbol c = case c of
     '=' -> EQUALS
     ',' -> VIRGOLA
 
+-- Functions that implement directly the automata states
+
+n:: String -> Bool -> (Token, String)
+n "" _ = error "Unexpected end of string"
+n (h:t) sign
+        | isDigitChar h =
+            let
+                buildNum input@(a:b) num =
+                    if isDigitChar a
+                        then buildNum b (num*10 + read [a]::Integer)
+                        else (Number( (if sign then -1 else 1) * num), input)
+                buildNum _ _ = error "Unexpected end of string"
+            in
+                buildNum t (read[h]::Integer)
+        | otherwise     = error "Malformed input"
 
 
-{-
-  Funzioni che implementano direttamente gli stati dell'automa.
-   Osserva che non c'è ricorsione.
-   Il passaggio dallo stato iniziale e principale I ad un
-   altro stato è realizzato con un'invocazione.
-   Poi si ritorna sempre a I,
-   quindi basta il normale ritorno della funzione.
--}
-
--- Stato N per riconoscere i numeri
-{-
-   n input numero segno
-   input è la stringa in input
-   numero è il numero elaborato finora
-   segno è il segno del numero, true sse è negativo (rilevato da I)
--}
-n :: String -> Integer -> Bool -> (Token, String)
-n "" _ _ = error "Unexpected end of string"
-n input@(c:l) num sign
-    | isDigitChar c =
-        let d = read [c] :: Integer
-        in n l (num*10 + d) sign
-    | otherwise = (Number((if sign then -1 else 1) * num), input)
-
--- Stato SC per riconoscere le stringhe tra virgolette
-{-
-   sc input stringa
-   stringa è la stringa elaborata finora
--}
 sc :: String -> String -> (Token, String)
 sc "" _ = error "Unexpected end of string"
-sc ('"':l) res = (String res, l) -- se è vuota ritorna la stringa elaborata finora
-sc (c:l) res = sc l (res ++ [c]) -- se non è vuota appende il prossimo carattere alla stringa elaborata finora
-                                 -- invocando ricorsivamente sc sull'input rimanente
+sc ('"':l) res = (String res, l)
+sc (c:l)   res = sc l (res ++ [c])
 
--- Stato S per raccogliere le stringhe che possono corrispondere ad
--- identificatori, operatori prefissi o keyword
-{-
-   s input stringa
-   stringa è l'identificatore elaborato finora
--}
+
 s :: String -> String -> (Token, String)
 s "" _ = error "Unexpected end of string"
 s input@(c:l) res
-    | isIdChar c = s l (res ++ [c]) -- se è un Id appende il carattere in fondo al risultato calcolato finora e invoca 's' sul resto della stringa da analizzare
-    | otherwise = (extractWord(res), input) -- ritorna la tupla (Token, Stringa)
+    | isIdChar c = s l (res ++ [c])
+    | otherwise = (extractWord(res), input)
 
-
--- Stato principale I
-{-
-   i input
-   input è il programma in forma di stringa
-   Descrizione:
-    stringa vuota => errore
-    carattere $ => ritorno il risultato in forma di lista di token
-    stringa non vuota =>
-                        qualsiasi carattere di spazio => viene ignoranto
-                                                         invocando i sulla
-                                                         stringa restante
-                        numero => stato n
-                        stringa costante => stato sc
-                        simboli => costruttore Symbol
-                        identificatori,operatori,keyword => stato s
--}
 i :: String -> [Token]
 i "" = error "Unexpected end of string"
 i "$" = [(Symbol DOLLAR)]
 i input@(f:l)
-  | isSpace f = i l
-  | f == '~' =
-     if isDigitChar (head(l))
-       then
-           let (tok, str) = n (tail(l))  (read [head(l)]::Integer) True
-            in tok:(i str)
-        else error "Unexpected token"
-  | isDigitChar f =
-                  let (tok, str) = n l (read [f]::Integer) False
-                  in tok:(i str)
-  | f == '\"' =
-              let (tok, str) = sc l ""
-              in tok:(i str)
+  | isSpace  f = i l
   | isSymbol f =
                 (Symbol (toSymbol f)):(i l)
-  | isIdChar f =
-                let (tok, str) = s input ""
-                in tok:(i str)
+  | otherwise =
+      let
+        match '\"' = sc l ""
+        match '~'  = n l True
+        match x
+            | isDigitChar x = n input False
+            | isAlphaChar x = s input ""
+        (token, string) = match f
+      in
+        token:(i string)
 
--- Funzione principale per l'analisi lessicale
+-- Main function : lexical analyzer
+
 lexi :: String -> [Token]
 lexi = i
