@@ -4,7 +4,7 @@ module Syntax (
 
 import Prelude hiding (EQ, exp)
 import Lexer
-import SyntaxTest
+-- import SyntaxTest
 
 -- Datatype to handle exceptions in a declarative manner
 

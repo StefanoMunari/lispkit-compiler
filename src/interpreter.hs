@@ -1,4 +1,3 @@
---INTERPRETE SECD COMPLETO in Haskell
 module Interpreter(
   Valore(..),
   execute

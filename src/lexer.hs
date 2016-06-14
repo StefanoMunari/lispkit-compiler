@@ -7,7 +7,7 @@ module Lexer (
 ) where
 
 import Prelude hiding (EQ)
-import LexerTest
+-- import LexerTest
 
 
 -- Types
