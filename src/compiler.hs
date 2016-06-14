@@ -84,7 +84,6 @@ comp lkc env secdx = case lkc of
                         (SUB x y)     -> comp y env (comp x env (Sub:secdx))
                         (MULT x y)   -> comp y env (comp x env (Mult:secdx))
                         (DIV x y)       -> comp y env (comp x env (Div:secdx))
-                        (REM x y)     -> comp y env (comp x env (Rem:secdx))
                         (EQC x y)     -> comp y env (comp x env (Eq:secdx))
                         (LEQC x y)   -> comp y env (comp x env (Leq:secdx))
                         (CARC x)      -> comp x env (Car:secdx)
@@ -96,7 +95,7 @@ comp lkc env secdx = case lkc of
                                              elsep = comp z env [Join]
                                           in
                                              comp x env  ( Sel thenp elsep : secdx)
-                        (LAMBDAC x y) -> (Ldf (comp y (x:n) [Rtn])):secdx
+                        (LAMBDAC x y) -> (Ldf (comp y (x:env) [Rtn])):secdx
                         (LETC x y)    -> let
                                              varl  = vars  y
                                              exprl = exprs y
