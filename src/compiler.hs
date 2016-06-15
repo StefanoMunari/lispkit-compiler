@@ -15,20 +15,20 @@ data Secdexpr = Add
               | Div  
               | Eq   
               | Leq 
-              | Car                                      -- head of list
-              | Cdr                                      -- tail of list
-              | Cons                                   -- list constructor
-              | Atom                                   -- not list arguments
-              | Join                                     -- restores control from D saved before Sel
-              | Rtn                                      -- restores the triple (S E C) from D
-              | Stop                                    -- terminates the program
-              | Push                                    -- push [OGA] placeholder in E
-              | Ap                                        -- applies a function
-              | Rap                                      -- recursive apply: replaces [OGA] with E required by recursive binders
-              | Ld (Integer, Integer)             -- loads a value from E to S
-              | Ldc LKC                               -- loads a constant value {NUM, BOO, STRI, NIL} from E to S
+              | Car                         -- head of list
+              | Cdr                         -- tail of list
+              | Cons                        -- list constructor
+              | Atom                        -- not list arguments
+              | Join                        -- restores control from D saved before Sel
+              | Rtn                         -- restores the triple (S E C) from D
+              | Stop                        -- terminates the program
+              | Push                        -- push [OGA] placeholder in E
+              | Ap                          -- applies a function
+              | Rap                         -- recursive apply: replaces [OGA] with E required by recursive binders
+              | Ld (Integer, Integer)       -- loads a value from E to S
+              | Ldc LKC                     -- loads a constant value {NUM, BOO, STRI, NIL} from E to S
               | Sel [Secdexpr] [Secdexpr]   -- selection : {if then else}
-              | Ldf [Secdexpr]                      -- function definition
+              | Ldf [Secdexpr]              -- function definition
                deriving(Show, Eq)
 
 -- Utility functions for the compiler
@@ -51,8 +51,8 @@ location x ct (n:m) = if (member x n) then (ct, position x n) else  location x (
 
 
 sexpr_reverse::[a]->[a]
-sexpr_reverse []= []
-sexpr_reverse (a:b)= (sexpr_reverse b) ++ [a]
+sexpr_reverse []    = []
+sexpr_reverse (a:b) = (sexpr_reverse b) ++ [a]
 
 
 vars:: [(a, b)] -> [a]
@@ -75,21 +75,21 @@ complist (x : y) n c = complist y n (comp x n (Cons : c))
 
 comp:: LKC -> [[LKC]] -> [Secdexpr] -> [Secdexpr]
 comp lkc env secdx = case lkc of
-                        (VAR x)        -> (Ld (location x 0 env)):secdx
+                        (VAR x)       -> (Ld (location x 0 env)):secdx
                         (NUM x)       -> (Ldc (NUM x)):secdx
                         (BOO x)       -> (Ldc (BOO x)):secdx
-                        (STRI x)       -> (Ldc (STRI x)):secdx
-                        NIL               -> (Ldc NIL):secdx
+                        (STRI x)      -> (Ldc (STRI x)):secdx
+                        NIL           -> (Ldc NIL):secdx
                         (ADD x y)     -> comp y env (comp x env (Add:secdx))
                         (SUB x y)     -> comp y env (comp x env (Sub:secdx))
-                        (MULT x y)   -> comp y env (comp x env (Mult:secdx))
-                        (DIV x y)       -> comp y env (comp x env (Div:secdx))
+                        (MULT x y)    -> comp y env (comp x env (Mult:secdx))
+                        (DIV x y)     -> comp y env (comp x env (Div:secdx))
                         (EQC x y)     -> comp y env (comp x env (Eq:secdx))
-                        (LEQC x y)   -> comp y env (comp x env (Leq:secdx))
+                        (LEQC x y)    -> comp y env (comp x env (Leq:secdx))
                         (CARC x)      -> comp x env (Car:secdx)
                         (CDRC x)      -> comp x env (Cdr:secdx)
-                        (CONSC x y) -> comp y env (comp x env (Cons:secdx))
-                        (ATOMC x)    -> comp x env (Atom:secdx)
+                        (CONSC x y)   -> comp y env (comp x env (Cons:secdx))
+                        (ATOMC x)     -> comp x env (Atom:secdx)
                         (IFC x y z)   -> let
                                              thenp = comp y env [Join]
                                              elsep = comp z env [Join]
