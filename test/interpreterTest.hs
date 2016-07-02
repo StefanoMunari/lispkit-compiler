@@ -2,7 +2,8 @@ module InterpreterTest(
 i0,
 i1,
 i2,
-i3
+i3,
+i4
 )
 where
 
@@ -43,3 +44,10 @@ i3="letrec useless = lambda(x) x+0 and "++
                             "min( car(list) , cdr(cdr(list))) "++
         "in minimum(cons(3 ,cons(7, cons(4, cons(1, cons(~5, cons(200, cons(7, nil)))))))) "++
         "end $"
+
+i4="letrec rev = lambda(x y) "++
+                        "if eq(x , nil) "++
+                          "then y "++
+                          "else rev(cdr(x) , cons(car(x), y)) "++
+      "in rev(cons(0 , cons(1 , cons(2 , nil))), nil) "++
+      "end $"
