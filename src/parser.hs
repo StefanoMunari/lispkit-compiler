@@ -5,7 +5,7 @@ module Parser (
 
 import Prelude hiding (EQ, exp)
 import Lexer
-
+-- import ParserTest
 -- Datatype LKC (Concrete Lispkit)
 
 data LKC

@@ -6,7 +6,7 @@ where
 
 import Lexer
 import Parser
-
+-- import CompilerTest
 -- Datatype Secdexpr (expressions for SECD machine)
 
 data Secdexpr = Add 

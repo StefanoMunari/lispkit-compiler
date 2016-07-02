@@ -7,7 +7,7 @@ where
 import Lexer
 import Parser
 import Compiler
-
+-- import InterpreterTest
 --------------------------------------------------------------------------------
 -- Datatype Value (R-values of the LKC language)
 
