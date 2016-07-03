@@ -129,7 +129,7 @@ prog a = do
              aux (Keyword LET : _)          = Return (k, LETC body binders)
              aux (Keyword LETREC : _)       = Return (k, LETRECC body binders)
              aux start                      = Raise  ("Found "++ show(start)
-                                                ++ " instead of let o letrec")
+                                                ++ " instead of let or letrec")
           in
              aux a
 
