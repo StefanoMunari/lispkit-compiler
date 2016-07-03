@@ -60,10 +60,6 @@ instance Monad Exc where
  (Return x) >>= funMon  = funMon x
 
 
-raise :: Exception -> Exc a
-raise e = Raise e
-
-
 -- Parsing of terminal symbols
 
 rec_key:: [Token] -> Exc [Token]
