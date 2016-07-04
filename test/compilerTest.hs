@@ -1,7 +1,8 @@
 module CompilerTest(
 c0,
 c1,
-c2
+c2,
+c3
 )
 where
 
@@ -22,3 +23,4 @@ c2="letrec f0 = lambda (x) "++
         "else f0(x-1) "++
     "in f0(5) "++
     "end $"
+c3="let x= 5 and y= 6 in x + y end $"
