@@ -67,8 +67,8 @@ exprs((_, y) : r)  = y : exprs r
 -- compiles formal parameters of LET and LETREC instructions
 
 complist:: [LKC] -> [[LKC]] -> [Secdexpr] -> [Secdexpr]
-complist [] _ c      = Ldc NIL : c
-complist (x : y) n c = complist y n (comp x n (Cons : c))
+complist [] _ secdx        = Ldc NIL : secdx
+complist (x : y) env secdx = complist y env (comp x env (Cons : secdx))
 
 
 -- Compiler : compiles an LKC program into a list of SECD expressions
