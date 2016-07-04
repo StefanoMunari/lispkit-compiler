@@ -6,7 +6,8 @@ where
 
 import Lexer
 import Parser
--- import CompilerTest
+import CompilerTest
+--------------------------------------------------------------------------------
 -- Datatype Secdexpr (expressions for SECD machine)
 
 data Secdexpr = Add 
@@ -50,11 +51,6 @@ location x _ []     = error ("location: VAR not found"++ x)
 location x ct (n:m) = if (member x n) then (ct, position x n) else  location x (ct+1) m
 
 
-sexpr_reverse::[a]->[a]
-sexpr_reverse []    = []
-sexpr_reverse (a:b) = (sexpr_reverse b) ++ [a]
-
-
 vars:: [(a, b)] -> [a]
 vars []            = []
 vars ((x, _) : r)  = x : vars r
@@ -94,7 +90,7 @@ comp lkc env secdx = case lkc of
                                              thenp = comp y env [Join]
                                              elsep = comp z env [Join]
                                           in
-                                             comp x env  ( Sel thenp elsep : secdx)
+                                             comp x env  (Sel thenp elsep : secdx)
                         (LAMBDAC x y) -> (Ldf (comp y (x:env) [Rtn])):secdx
                         (LETC x y)    -> let
                                              varl  = vars  y
