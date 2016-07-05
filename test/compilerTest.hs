@@ -2,7 +2,8 @@ module CompilerTest(
 c0,
 c1,
 c2,
-c3
+c3,
+c4
 )
 where
 
@@ -24,3 +25,5 @@ c2="letrec f0 = lambda (x) "++
     "in f0(5) "++
     "end $"
 c3="let x= 5 and y= 6 in x + y end $"
+c4="letrec fact= lambda(x y) if eq(x,0) then y else fact(x-1, x*y) "++
+    "in fact(5,1) end $"
