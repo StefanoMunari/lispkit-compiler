@@ -11,7 +11,7 @@ import Compiler
 --------------------------------------------------------------------------------
 -- Datatype Value (R-values of the LKC language)
 
-data Value = V  LKC
+data Value = V  LKC                     -- standard LKC values (NUM, STRING, etc.)
             | OGA                       -- placeholder for recursive enviroment
             | CLO [Secdexpr] [[Value]]  -- closure
             | VLISTA [Value]            -- list of actual parameters
@@ -19,8 +19,8 @@ data Value = V  LKC
 
 -- Datatype Dump (holds temporary values of registers)
 
-data Dump = CONTR  [Secdexpr]
-          | TRIPLE [Value] [[Value]] [Secdexpr] 
+data Dump = CONTR  [Secdexpr]                   -- Control register moved by IF THEN ELSE
+          | TRIPLE [Value] [[Value]] [Secdexpr] -- TRIPLE S E C moved by Ap
           | DUMMY
           deriving(Show,Eq)
 
@@ -153,7 +153,7 @@ interpreter s e c d = case (head c) of
                                                   (CLO c1 e1) ->  case e1 of 
                                                                         ([OGA]:re)   -> case (head (tail s)) of 
                                                                                         (VLISTA vl2) -> interpreter [] ((lazyE vl2 vl2):re) c1 ((TRIPLE (tail (tail s)) (tail e) (tail c)):d)
-                                                                                        _                   -> error "Rap: missing parameter list after OGA"
+                                                                                        _                   -> error "Rap: missing parameter list"
                                                                         _            -> error "Rap: [OGA] not found in the recursive enviroment"
                                                   _          -> error "Rap: missing closure on Stack"
                                       Push -> interpreter s  ([OGA]:e)  (tail c)  d
