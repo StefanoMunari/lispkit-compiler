@@ -49,13 +49,13 @@ instance Functor Exc where
 
 
 instance Applicative Exc where
-  pure               = Return
+  pure x             = Return x
   (Raise e)    <*> _ = Raise e
   (Return fun) <*> q = fmap fun q
 
 
 instance Monad Exc where
- return                 = Return
+ return x               = Return x
  (Raise e)  >>= _       = Raise e
  (Return x) >>= funMon  = funMon x
 
